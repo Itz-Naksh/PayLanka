@@ -1,26 +1,48 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * PayLanka design tokens.
+ * Usage: bg-primary, text-foreground, text-muted, border-border, bg-surface…
+ *
+ * Accessibility notes (WCAG AA = 4.5:1 for normal text):
+ * - accent (#D9A440) is for highlights only, never text.
+ * - success/warning base colours are for icons, borders and fills. Small status
+ *   text uses the darker *-ink shades, because #2E8B57 (4.4:1) and #C77C0E
+ *   (3.1:1) fall just short of AA on white.
+ */
+@theme {
+  --color-primary: #7a1f2b;
+  --color-primary-hover: #5e1620;
+  --color-primary-soft: #f5e9ea;
+  --color-accent: #d9a440;
+  --color-accent-soft: #fbf3e3;
+
+  --color-background: #faf7f4;
+  --color-surface: #ffffff;
+  --color-foreground: #2a2324;
+  --color-muted: #6e6464;
+  --color-border: #e8e1dc;
+
+  --color-success: #2e8b57;
+  --color-success-ink: #23704a;
+  --color-success-soft: #eaf5ef;
+  --color-warning: #c77c0e;
+  --color-warning-ink: #8a5408;
+  --color-warning-soft: #fbf1e2;
+  --color-error: #b3261e;
+  --color-error-soft: #fbeae9;
+
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  body {
+    @apply bg-background text-foreground;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Money columns: equal-width digits so amounts line up in tables. */
+@utility money {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }

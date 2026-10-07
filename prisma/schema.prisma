@@ -1,0 +1,253 @@
+// PayLanka database schema
+//
+// Conventions
+// - Money:  Int columns ending in `Cents` (Rs. 1,250.50 is stored as 125050).
+// - Rates:  Int columns ending in `Bp` = basis points (8% is stored as 800).
+// - Hours / days are Decimal because they can be fractional (2.5 OT hours).
+// Floating-point numbers are never used for money.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  HR
+  EMPLOYEE
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum PayrollStatus {
+  DRAFT
+  REVIEW
+  APPROVED
+}
+
+enum LineType {
+  EARNING
+  DEDUCTION
+}
+
+enum LineSource {
+  FIXED_ALLOWANCE
+  EXTRA_ALLOWANCE
+  OTHER_DEDUCTION
+}
+
+// ---------------------------------------------------------------------------
+// Users & company
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  passwordHash String
+  role         Role
+  isActive     Boolean   @default(true)
+  // Links an EMPLOYEE-role login to their own employee record (self-service payslips).
+  employeeId   String?   @unique
+  employee     Employee? @relation(fields: [employeeId], references: [id])
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+// Single-row table (id is always 1). Rates live here, not in code, so they can
+// be changed when regulations change without a redeploy.
+model CompanySettings {
+  id                Int      @id @default(1)
+  name              String
+  address           String
+  epfRegNo          String
+  etfRegNo          String
+  epfEmployeeRateBp Int      @default(800) // 8%
+  epfEmployerRateBp Int      @default(1200) // 12%
+  etfEmployerRateBp Int      @default(300) // 3%
+  otHourlyDivisor   Int      @default(240) // hourly rate = basic / 240
+  otMultiplierBp    Int      @default(15000) // 1.5x
+  noPayDayDivisor   Int      @default(30) // daily rate = basic / 30
+  apitEnabled       Boolean  @default(false)
+  activeTaxTableId  String?
+  activeTaxTable    TaxTable? @relation(fields: [activeTaxTableId], references: [id])
+  updatedAt         DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Employees
+// ---------------------------------------------------------------------------
+
+model Department {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  employees Employee[]
+}
+
+model Employee {
+  id               String              @id @default(cuid())
+  employeeNo       String              @unique
+  firstName        String
+  lastName         String
+  nic              String              @unique
+  epfNo            String?             @unique
+  departmentId     String
+  department       Department          @relation(fields: [departmentId], references: [id])
+  designation      String
+  joinDate         DateTime            @db.Date
+  bankName         String
+  bankBranch       String?
+  accountNo        String
+  basicSalaryCents Int
+  status           EmployeeStatus      @default(ACTIVE)
+  deactivatedAt    DateTime?
+  allowances       EmployeeAllowance[]
+  payrollItems     PayrollItem[]
+  user             User?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  @@index([status])
+  @@index([departmentId])
+}
+
+// Fixed monthly allowances. `epfLiable` decides whether the allowance is part
+// of "total earnings" for EPF/ETF purposes.
+model EmployeeAllowance {
+  id          String   @id @default(cuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  name        String
+  amountCents Int
+  epfLiable   Boolean  @default(false)
+}
+
+// ---------------------------------------------------------------------------
+// Payroll
+// ---------------------------------------------------------------------------
+
+// One run per calendar month. Rates are SNAPSHOTTED at creation so an approved
+// run always reproduces exactly what was paid, even if settings change later.
+model PayrollRun {
+  id                String        @id @default(cuid())
+  year              Int
+  month             Int // 1-12
+  status            PayrollStatus @default(DRAFT)
+  epfEmployeeRateBp Int
+  epfEmployerRateBp Int
+  etfEmployerRateBp Int
+  otHourlyDivisor   Int
+  otMultiplierBp    Int
+  noPayDayDivisor   Int
+  apitEnabled       Boolean
+  createdById       String
+  submittedById     String?
+  submittedAt       DateTime?
+  approvedById      String?
+  approvedAt        DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  items             PayrollItem[]
+
+  @@unique([year, month])
+}
+
+// One employee in one run. Employee details are snapshotted for the same reason
+// as rates: the payslip must not change if the employee later changes bank.
+model PayrollItem {
+  id                   String            @id @default(cuid())
+  runId                String
+  run                  PayrollRun        @relation(fields: [runId], references: [id], onDelete: Cascade)
+  employeeId           String
+  employee             Employee          @relation(fields: [employeeId], references: [id])
+  // --- employee snapshot ---
+  employeeNo           String
+  employeeName         String
+  nic                  String
+  epfNo                String?
+  departmentName       String
+  designation          String
+  bankName             String
+  bankBranch           String?
+  accountNo            String
+  // --- inputs ---
+  overtimeHours        Decimal           @default(0) @db.Decimal(6, 2)
+  noPayDays            Decimal           @default(0) @db.Decimal(5, 2)
+  // --- calculated results (cents) ---
+  basicCents           Int
+  fixedAllowancesCents Int
+  extraAllowancesCents Int
+  overtimeCents        Int
+  noPayCents           Int
+  grossCents           Int
+  epfLiableCents       Int
+  epfEmployeeCents     Int
+  epfEmployerCents     Int
+  etfEmployerCents     Int
+  apitCents            Int
+  otherDeductionsCents Int
+  totalDeductionsCents Int
+  netCents             Int
+  lines                PayrollItemLine[]
+
+  @@unique([runId, employeeId])
+}
+
+// Itemised allowances / deductions, so the payslip can list each one by name.
+model PayrollItemLine {
+  id          String      @id @default(cuid())
+  itemId      String
+  item        PayrollItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  type        LineType
+  source      LineSource
+  label       String
+  amountCents Int
+  epfLiable   Boolean     @default(false)
+}
+
+// ---------------------------------------------------------------------------
+// APIT (income tax) hook — empty by default; no tax rates are hard-coded.
+// ---------------------------------------------------------------------------
+
+model TaxTable {
+  id            String            @id @default(cuid())
+  name          String
+  effectiveFrom DateTime          @db.Date
+  brackets      TaxBracket[]
+  companies     CompanySettings[]
+}
+
+// Progressive monthly bracket: tax = (portion of income inside the bracket) x rate.
+model TaxBracket {
+  id        String   @id @default(cuid())
+  tableId   String
+  table     TaxTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  fromCents Int
+  toCents   Int? // null = no upper limit
+  rateBp    Int
+}
+
+// ---------------------------------------------------------------------------
+// Audit log
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actorEmail String // kept even if the user is later removed
+  action     String // e.g. PAYROLL_CREATED, PAYROLL_APPROVED, EMPLOYEE_UPDATED
+  entityType String
+  entityId   String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}

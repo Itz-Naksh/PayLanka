@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PayLanka — Smart Payroll Management for Sri Lankan Businesses
 
-## Getting Started
+> 🚧 Work in progress. A full README (features, screenshots, payroll formulas,
+> deployment) is written in Phase 6.
 
-First, run the development server:
+## Run locally
+
+Requirements: Node.js 20.19+ (24 recommended).
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install                                   # also generates the Prisma client
+cp .env.example .env                          # then fill in the values (see below)
+
+npx prisma dev --name paylanka --detach       # local Postgres; paste the printed URL into DATABASE_URL
+npx auth secret                               # or put any random 32-byte base64 string in AUTH_SECRET
+
+npm run db:migrate                            # create tables
+npm run db:seed                               # demo company + 15 employees + 3 logins
+npm run dev                                   # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Prefer Neon or Supabase? Put their connection string in `DATABASE_URL` and skip `prisma dev`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Demo logins (fake data)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Role            | Email                    | Password    |
+| --------------- | ------------------------ | ----------- |
+| Admin           | admin@paylanka.test      | Demo@1234   |
+| HR / Accountant | hr@paylanka.test         | Demo@1234   |
+| Employee        | employee@paylanka.test   | Demo@1234   |
 
-## Learn More
+## Useful scripts
 
-To learn more about Next.js, take a look at the following resources:
+| Script              | What it does                                |
+| ------------------- | ------------------------------------------- |
+| `npm run dev`       | Start the dev server                        |
+| `npm test`          | Run unit tests (Vitest)                     |
+| `npm run typecheck` | TypeScript check                            |
+| `npm run lint`      | ESLint                                      |
+| `npm run db:seed`   | Reset the database to demo data             |
+| `npm run db:studio` | Browse the database in Prisma Studio        |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+All data in this project is fictional. EPF/ETF rates are configurable and should be
+verified against current Sri Lankan regulations before real use.

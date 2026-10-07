@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# allow the template, ignore generated Prisma client
+!.env.example
+/src/generated/
