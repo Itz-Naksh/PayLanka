@@ -4,7 +4,7 @@ import { ChevronDown, CircleAlert, FileDown, Pencil } from "lucide-react";
 import { Fragment, useState } from "react";
 import { PayBreakdown } from "@/components/payroll/pay-breakdown";
 import { Card } from "@/components/ui/card";
-import { formatLKR } from "@/lib/money";
+import { formatLKR, formatRateBp } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import { breakdownFromItem, ItemEditor } from "./item-editor";
 import type { ItemView, RunCalcContext } from "./types";
@@ -35,7 +35,9 @@ export function ItemsTable({
               <th scope="col" className="hidden px-3 py-3 text-center whitespace-nowrap md:table-cell">OT (hrs)</th>
               <th scope="col" className="hidden px-3 py-3 text-center whitespace-nowrap md:table-cell">No-pay (days)</th>
               <th scope="col" className="hidden px-3 py-3 text-right sm:table-cell">Gross</th>
-              <th scope="col" className="hidden px-3 py-3 text-right xl:table-cell">EPF 8%</th>
+              <th scope="col" className="hidden px-3 py-3 text-right xl:table-cell">
+                EPF {formatRateBp(context.rates.epfEmployeeRateBp)}
+              </th>
               <th scope="col" className="hidden px-3 py-3 text-right lg:table-cell">Deductions</th>
               <th scope="col" className="px-3 py-3 text-right">Net pay</th>
               <th scope="col" className="w-20 px-2 py-3"><span className="sr-only">Actions</span></th>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addMonths, currentPeriod, lastDayOfPeriod, parsePeriodKey, periodKey, periodLabel } from "./period";
+import { addMonths, currentPeriod, lastDayOfPeriod, parsePeriodKey, periodKey, periodLabel, taxYearOf } from "./period";
 
 describe("periods", () => {
   it("formats and parses month keys", () => {
@@ -27,5 +27,12 @@ describe("periods", () => {
   it("uses Sri Lanka time for the current month", () => {
     // 31 Oct 2026 20:00 UTC is already 1 Nov 2026 01:30 in Colombo (UTC+5:30).
     expect(currentPeriod(new Date("2026-10-31T20:00:00Z"))).toEqual({ year: 2026, month: 11 });
+  });
+
+  it("finds the April–March tax year", () => {
+    expect(taxYearOf({ year: 2026, month: 10 }).label).toBe("2026/27");
+    expect(taxYearOf({ year: 2026, month: 3 }).label).toBe("2025/26");
+    expect(taxYearOf({ year: 2026, month: 4 })).toMatchObject({ first: { year: 2026, month: 4 }, last: { year: 2027, month: 3 } });
+    expect(taxYearOf({ year: 2099, month: 12 }).label).toBe("2099/00");
   });
 });

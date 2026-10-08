@@ -1,7 +1,8 @@
-import { ArrowLeft, CircleCheck, FileDown, Lock, MessageSquareWarning, Send } from "lucide-react";
+import { ArrowLeft, CircleCheck, FileDown, Info, Lock, MessageSquareWarning, Send, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RunStatusBadge } from "@/components/payroll/status-badge";
+import { Badge } from "@/components/ui/badge";
 import { buttonClasses } from "@/components/ui/button";
 import { Card, PageHeader, StatCard } from "@/components/ui/card";
 import { Money } from "@/components/ui/money";
@@ -11,9 +12,10 @@ import { formatDateTime } from "@/lib/format";
 import { formatRateBp } from "@/lib/money";
 import { toHundredths, ratesOf } from "@/lib/payroll/convert";
 import { periodLabel } from "@/lib/payroll/period";
+import { reviewChecks } from "@/lib/payroll/review";
 import { ACTION_LABELS, describeEntry } from "@/lib/audit-format";
 import { runActivity } from "@/server/audit/queries";
-import { getRunDetail } from "@/server/payroll/queries";
+import { getRunDetail, previousRunLines } from "@/server/payroll/queries";
 import { runBrackets } from "@/server/payroll/engine";
 import { ItemsTable } from "./items-table";
 import { RunActions } from "./run-actions";
@@ -41,6 +43,7 @@ export default async function PayrollRunPage({ params }: PageProps<"/payroll/[ru
   // Plain JSON for client components (Prisma Decimal isn't serialisable).
   const items: ItemView[] = run.items.map((item) => ({
     id: item.id,
+    employeeId: item.employeeId,
     employeeNo: item.employeeNo,
     employeeName: item.employeeName,
     departmentName: item.departmentName,
@@ -64,6 +67,17 @@ export default async function PayrollRunPage({ params }: PageProps<"/payroll/[ru
     lines: item.lines.map((l) => ({ source: l.source, label: l.label, amountCents: l.amountCents, epfLiable: l.epfLiable })),
   }));
   const context = { rates: ratesOf(run), apitBrackets: runBrackets(run) };
+
+  // Variance review before approval (not needed once a run is locked).
+  const previous = run.status === "APPROVED" ? null : await previousRunLines(run);
+  const flags =
+    run.status === "APPROVED"
+      ? []
+      : reviewChecks(
+          items,
+          previous?.lines ?? null,
+          previous?.label ?? null,
+        );
 
   return (
     <>
@@ -131,12 +145,14 @@ export default async function PayrollRunPage({ params }: PageProps<"/payroll/[ru
           hint="Transferred to employees' bank accounts"
         />
         <StatCard
-          label="EPF to pay (8% + 12%)"
+          label={`EPF to pay (${formatRateBp(run.epfEmployeeRateBp)} + ${formatRateBp(run.epfEmployerRateBp)})`}
           value={<Money cents={totals.epfEmployeeCents + totals.epfEmployerCents} />}
           hint="Employee + employer share"
         />
-        <StatCard label="Total employer cost" value={<Money cents={totals.employerCostCents} />} hint="Gross + EPF 12% + ETF 3%" />
+        <StatCard label="Total employer cost" value={<Money cents={totals.employerCostCents} />} hint={`Gross + EPF ${formatRateBp(run.epfEmployerRateBp)} + ETF ${formatRateBp(run.etfEmployerRateBp)}`} />
       </div>
+
+      {run.status !== "APPROVED" ? <ReviewChecks flags={flags} previousLabel={previous?.label ?? null} /> : null}
 
       <div className="grid gap-6 2xl:grid-cols-[1fr_18rem]">
         <ItemsTable items={items} totals={totals} context={context} editable={editable} />
@@ -186,6 +202,46 @@ export default async function PayrollRunPage({ params }: PageProps<"/payroll/[ru
         </div>
       </div>
     </>
+  );
+}
+
+function ReviewChecks({ flags, previousLabel }: { flags: ReturnType<typeof reviewChecks>; previousLabel: string | null }) {
+  const warnings = flags.filter((f) => f.severity === "warning").length;
+  return (
+    <Card className="mb-6 p-5 text-sm">
+      <div className="flex flex-wrap items-center gap-2">
+        <h2 className="font-semibold">Review checks</h2>
+        {flags.length === 0 ? (
+          <Badge tone="success">Nothing unusual</Badge>
+        ) : (
+          <>
+            {warnings > 0 ? <Badge tone="warning">{warnings} to check</Badge> : null}
+            {flags.length - warnings > 0 ? <Badge tone="neutral">{flags.length - warnings} for information</Badge> : null}
+          </>
+        )}
+      </div>
+      <p className="mt-1 text-muted">
+        {previousLabel ? `Compared with ${previousLabel}. ` : "No previous month to compare with. "}
+        Net pay changes of 20% or more, unusual deductions, joiners and leavers are listed for the approver.
+      </p>
+      {flags.length > 0 ? (
+        <ul className="mt-3 divide-y divide-border">
+          {flags.map((f, i) => (
+            <li key={`${f.employeeId}-${i}`} className="flex items-start gap-2.5 py-2">
+              {f.severity === "warning" ? (
+                <TriangleAlert className="mt-0.5 size-4 shrink-0 text-warning" aria-label="Check" />
+              ) : (
+                <Info className="mt-0.5 size-4 shrink-0 text-muted" aria-label="Information" />
+              )}
+              <span>
+                <span className="font-medium">{f.employeeName}</span>
+                <span className="text-muted"> · {f.employeeNo}</span> — {f.message}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </Card>
   );
 }
 

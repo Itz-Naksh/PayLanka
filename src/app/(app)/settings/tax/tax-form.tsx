@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox, Field, FormMessage } from "@/components/ui/field";
+import { initialRowKey, useNewRowKey } from "@/lib/forms/row-keys";
 import { useValidatedAction } from "@/lib/forms/use-validated-action";
 import { taxTableSchema } from "@/lib/validation/payroll";
 import { saveTaxTable } from "@/server/settings/tax-actions";
@@ -16,12 +17,10 @@ export type TaxDefaults = {
   brackets: { fromCents: string; toCents: string; rateBp: string }[];
 };
 
-let counter = 0;
-const key = () => `b${counter++}`;
-
 export function TaxForm({ defaults }: { defaults: TaxDefaults }) {
   const { state, pending, onSubmit, error } = useValidatedAction(taxTableSchema, saveTaxTable);
-  const [rows, setRows] = useState(() => defaults.brackets.map((b) => ({ key: key(), ...b })));
+  const key = useNewRowKey("b");
+  const [rows, setRows] = useState(() => defaults.brackets.map((b, i) => ({ key: initialRowKey("b", i), ...b })));
   const bracketError = error("brackets");
 
   return (

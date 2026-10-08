@@ -79,6 +79,8 @@ export async function createRun(_prev: ActionState, formData: FormData): Promise
       return { employeeId: employee.id, ...employeeSnapshot(employee), ...columns, lines: { createMany: { data: lines } } };
     });
 
+    // Two people creating the same month at once: the unique (year, month)
+    // constraint lets only one succeed; the other gets a friendly message.
     const run = await prisma.$transaction(async (tx) => {
       const created = await tx.payrollRun.create({
         data: {
@@ -96,7 +98,11 @@ export async function createRun(_prev: ActionState, formData: FormData): Promise
         employees: items.length,
       });
       return created;
+    }).catch((error: unknown) => {
+      if ((error as { code?: string }).code === "P2002") return null;
+      throw error;
     });
+    if (!run) return errorState(`A payroll run for ${periodLabel(period)} was just created by someone else.`);
 
     createdId = run.id;
     refresh();
@@ -167,6 +173,11 @@ export async function saveItemInputs(_prev: ActionState, formData: FormData): Pr
     if (!saved) return errorState(LOCKED_MESSAGE);
 
     refresh(item.runId);
+    if (result.warnings.includes("NO_PAY_EXCEEDS_BASIC")) {
+      return successState(
+        `Saved ${item.employeeName}. No-pay was capped at the basic salary (more days than the ${item.run.noPayDayDivisor}-day divisor).`,
+      );
+    }
     if (result.warnings.includes("NET_PAY_NEGATIVE")) {
       return errorState(`Saved, but net pay is negative (${formatLKR(result.netCents)}). Reduce the deductions.`);
     }

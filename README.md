@@ -21,13 +21,16 @@ professional PDF payslips, statutory and bank reports, and a full audit trail.
   and deductions (salary advance, loan) with a **live preview** of each employee's pay.
 - **Approval workflow** — Draft → In review → Approved & locked. An Admin can return a run with a
   note. Whoever submitted a run can't approve it (segregation of duties).
+- **Review checks before approval** — flags net pay changes of 20% or more versus last month, very
+  large deductions, negative pay, joiners and leavers, high overtime and no-pay leave.
 - **PDF payslips** — earnings, deductions, employer contributions, net pay in figures and words;
   drafts carry a watermark; one PDF per employee or one combined PDF per run.
 - **Reports with CSV export** — payroll summary, EPF/ETF contributions, department cost and a bank
   transfer list (approved payroll only).
 - **Dashboard** — this month's payroll cost, EPF/ETF to pay and a 12-month cost chart.
 - **Audit log** — who created, edited, submitted, returned or approved what, and when.
-- **Roles** — Admin, HR/Accountant and Employee (employees see only their own approved payslips).
+- **Roles** — Admin, HR/Accountant and Employee. Employees see only their own approved payslips,
+  plus tax-year-to-date totals (April – March): gross, net, their EPF and the employer's EPF + ETF.
 - **Optional APIT hook** — progressive income-tax brackets you enter yourself; off by default.
 - Responsive, accessible UI (WCAG AA colour contrast, keyboard friendly) that works on phones.
 
@@ -53,7 +56,7 @@ A sample payslip PDF is in [`docs/sample-payslip.pdf`](docs/sample-payslip.pdf).
 | Validation | Zod — the same schemas run in the browser and on the server |
 | UI | Tailwind CSS 4, Plus Jakarta Sans, lucide icons |
 | PDFs / charts | React-PDF, Recharts |
-| Tests | Vitest (185 unit tests) |
+| Tests | Vitest (200+ unit tests) |
 | Hosting | Vercel + Neon (or Supabase) |
 
 ## How payroll is calculated
@@ -105,9 +108,13 @@ sums of rounded components, so every payslip adds up exactly.
 
 - No public sign-up. The first Admin comes from `.env`; everyone else is created by an Admin with a
   temporary password and **must change it at first sign-in**.
+- **Brute-force protection** — after 5 wrong passwords for an email (or 20 from one IP) in 15 minutes,
+  sign-in is paused; an Admin password reset lifts it.
 - Passwords are bcrypt hashes and are never logged. Every page, server action and API route checks
   the user's role on the server; deactivating a user takes effect on their next click.
 - Employees can open only their own approved payslips; other IDs return "not found".
+- After sign-in, people return to the page they asked for — but only ever to a page on this site
+  (no open redirects).
 - Bank account numbers are masked on payslips (`****1234`); payslip and report downloads are `no-store`.
 - Security headers (frame denial, `nosniff`, strict referrer, HSTS).
 

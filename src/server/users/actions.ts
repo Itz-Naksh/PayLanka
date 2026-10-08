@@ -108,6 +108,8 @@ export async function resetUserPassword(_prev: ActionState, formData: FormData):
     const passwordHash = await bcrypt.hash(parsed.data.password, BCRYPT_COST);
     await prisma.$transaction(async (tx) => {
       await tx.user.update({ where: { id }, data: { passwordHash, mustChangePassword: true } });
+      // A reset also lifts any sign-in lockout from earlier wrong guesses.
+      await tx.loginAttempt.deleteMany({ where: { email: user.email, success: false } });
       // Never log the password itself — only that it was reset.
       await logAudit(tx, actor, "USER_PASSWORD_RESET", { type: "User", id }, { email: user.email });
     });

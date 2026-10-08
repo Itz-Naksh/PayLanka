@@ -7,7 +7,7 @@ import { Card, PageHeader, StatCard } from "@/components/ui/card";
 import { Money } from "@/components/ui/money";
 import { hasPermission } from "@/lib/auth/permissions";
 import { requirePermission } from "@/lib/auth/session";
-import { formatLKR } from "@/lib/money";
+import { formatLKR, formatRateBp } from "@/lib/money";
 import { dashboardData } from "@/server/dashboard/queries";
 
 export const metadata = { title: "Dashboard" };
@@ -68,8 +68,8 @@ export default async function DashboardPage() {
           <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard label="Active employees" value={activeEmployees} hint={`${headline.employees} paid in ${headline.period}`} />
             <StatCard label="Net pay to bank" value={<Money cents={headline.netCents} />} hint="After all deductions" />
-            <StatCard label="EPF to pay" value={<Money cents={headline.epfCents} />} hint="Employee 8% + employer 12%" />
-            <StatCard label="ETF to pay" value={<Money cents={headline.etfCents} />} hint="Employer 3%" />
+            <StatCard label="EPF to pay" value={<Money cents={headline.epfCents} />} hint={`Employee ${formatRateBp(headline.rates.epfEmployeeRateBp)} + employer ${formatRateBp(headline.rates.epfEmployerRateBp)}`} />
+            <StatCard label="ETF to pay" value={<Money cents={headline.etfCents} />} hint={`Employer ${formatRateBp(headline.rates.etfEmployerRateBp)}`} />
           </div>
 
           <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">

@@ -59,3 +59,17 @@ export function addMonths(period: Period, months: number): Period {
 export function lastDayOfPeriod({ year, month }: Period): Date {
   return new Date(Date.UTC(year, month, 0));
 }
+
+/**
+ * Sri Lanka's tax (year of assessment) runs 1 April – 31 March.
+ * { 2026, 10 } -> { startYear: 2026, label: "2026/27" } (April 2026 – March 2027).
+ */
+export function taxYearOf({ year, month }: Period) {
+  const startYear = month >= 4 ? year : year - 1;
+  return {
+    startYear,
+    label: `${startYear}/${String((startYear + 1) % 100).padStart(2, "0")}`,
+    first: { year: startYear, month: 4 } as Period,
+    last: { year: startYear + 1, month: 3 } as Period,
+  };
+}

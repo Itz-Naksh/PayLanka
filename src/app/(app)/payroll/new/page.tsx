@@ -11,11 +11,19 @@ export const metadata = { title: "New payroll run" };
 
 export default async function NewRunPage() {
   await requirePermission("payroll:edit");
-  const [settings, activeEmployees] = await Promise.all([
+  const now = currentPeriod();
+  const next = addMonths(now, 1);
+  const [settings, activeEmployees, existing] = await Promise.all([
     prisma.companySettings.findUnique({ where: { id: 1 } }),
     prisma.employee.count({ where: { status: "ACTIVE" } }),
+    prisma.payrollRun.findMany({
+      where: { OR: [now, next].map(({ year, month }) => ({ year, month })) },
+      select: { year: true, month: true },
+    }),
   ]);
-  const now = currentPeriod();
+  // Suggest the first month that doesn't have a run yet (this month, else next).
+  const taken = (p: { year: number; month: number }) => existing.some((r) => r.year === p.year && r.month === p.month);
+  const suggested = taken(now) && !taken(next) ? next : now;
 
   return (
     <>
@@ -26,7 +34,7 @@ export default async function NewRunPage() {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_22rem]">
         <Card className="p-5 sm:p-6">
-          <NewRunForm defaultPeriod={periodKey(now)} maxPeriod={periodKey(addMonths(now, 1))} />
+          <NewRunForm defaultPeriod={periodKey(suggested)} maxPeriod={periodKey(next)} />
         </Card>
 
         <Card className="h-fit p-5 text-sm">

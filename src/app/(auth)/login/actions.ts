@@ -1,17 +1,12 @@
 "use server";
 
-import { AuthError } from "next-auth";
+import { AuthError, CredentialsSignin } from "next-auth";
 import { signIn } from "@/auth";
+import { safeCallbackPath } from "@/lib/auth/callback";
 import { homePathFor } from "@/lib/auth/permissions";
 import { demoAccountFor, isDemoMode } from "@/lib/demo";
 import { errorState, parseFormData, type ActionState } from "@/lib/forms/action-state";
 import { loginSchema } from "@/lib/validation/auth";
-
-/** Only allow redirects back into this app (blocks "open redirect" attacks). */
-function safeCallbackUrl(value: FormDataEntryValue | null): string {
-  if (typeof value === "string" && value.startsWith("/") && !value.startsWith("//")) return value;
-  return "/";
-}
 
 export async function loginAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   // Validate again on the server — the client-side check can be bypassed.
@@ -21,11 +16,16 @@ export async function loginAction(_prev: ActionState, formData: FormData): Promi
   try {
     await signIn("credentials", {
       ...parsed.data,
-      redirectTo: safeCallbackUrl(formData.get("callbackUrl")),
+      redirectTo: safeCallbackPath(formData.get("callbackUrl")),
     });
   } catch (error) {
     // A wrong password surfaces as an AuthError. Anything else (including the
     // internal "redirect" signal on success) must be re-thrown.
+    if (error instanceof CredentialsSignin && error.code === "too_many_attempts") {
+      return errorState(
+        "Too many failed attempts. Please wait 15 minutes, or ask an administrator to reset your password.",
+      );
+    }
     if (error instanceof AuthError) return errorState("Invalid email or password.");
     throw error;
   }

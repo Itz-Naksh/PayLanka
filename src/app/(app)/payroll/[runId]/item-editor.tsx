@@ -6,6 +6,7 @@ import { PayBreakdown, type BreakdownData } from "@/components/payroll/pay-break
 import { Button } from "@/components/ui/button";
 import { Checkbox, Field, FormMessage } from "@/components/ui/field";
 import { formDataToObject } from "@/lib/forms/form-data";
+import { initialRowKey, useNewRowKey } from "@/lib/forms/row-keys";
 import { useValidatedAction } from "@/lib/forms/use-validated-action";
 import { centsToDecimalString } from "@/lib/money";
 import { calculatePayroll } from "@/lib/payroll/calculate";
@@ -29,9 +30,6 @@ export function breakdownFromItem(item: ItemView, context: RunCalcContext): Brea
 }
 
 type Row = { key: string; label: string; amount: string; epfLiable?: boolean };
-let counter = 0;
-const key = () => `r${counter++}`;
-
 /** Edit one employee's monthly inputs, with a live preview from the shared payroll engine. */
 export function ItemEditor({ item, context }: { item: ItemView; context: RunCalcContext }) {
   const { state, pending, onSubmit, error } = useValidatedAction(itemInputsSchema, saveItemInputs);
@@ -39,15 +37,21 @@ export function ItemEditor({ item, context }: { item: ItemView; context: RunCalc
     .filter((l) => l.source === "FIXED_ALLOWANCE")
     .map((l) => ({ label: l.label, amountCents: l.amountCents, epfLiable: l.epfLiable }));
 
+  const key = useNewRowKey("r");
   const [extras, setExtras] = useState<Row[]>(() =>
     item.lines
       .filter((l) => l.source === "EXTRA_ALLOWANCE")
-      .map((l) => ({ key: key(), label: l.label, amount: centsToDecimalString(l.amountCents), epfLiable: l.epfLiable })),
+      .map((l, i) => ({
+        key: initialRowKey("extra", i),
+        label: l.label,
+        amount: centsToDecimalString(l.amountCents),
+        epfLiable: l.epfLiable,
+      })),
   );
   const [deductions, setDeductions] = useState<Row[]>(() =>
     item.lines
       .filter((l) => l.source === "OTHER_DEDUCTION")
-      .map((l) => ({ key: key(), label: l.label, amount: centsToDecimalString(l.amountCents) })),
+      .map((l, i) => ({ key: initialRowKey("deduction", i), label: l.label, amount: centsToDecimalString(l.amountCents) })),
   );
   const [preview, setPreview] = useState<BreakdownData>(() => breakdownFromItem(item, context));
 

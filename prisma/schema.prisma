@@ -260,3 +260,18 @@ model AuditLog {
   @@index([entityType, entityId])
   @@index([createdAt])
 }
+
+// ---------------------------------------------------------------------------
+// Sign-in attempts — used to slow down password guessing (brute force).
+// ---------------------------------------------------------------------------
+
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  email     String
+  ip        String?
+  success   Boolean
+  createdAt DateTime @default(now())
+
+  @@index([email, createdAt])
+  @@index([ip, createdAt])
+}

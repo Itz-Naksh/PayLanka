@@ -1,10 +1,16 @@
 import bcrypt from "bcryptjs";
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { authConfig } from "@/auth.config";
 import { prisma } from "@/lib/db";
 import { demoAccountFor, isDemoMode } from "@/lib/demo";
 import { loginSchema } from "@/lib/validation/auth";
+import { clientIp, isLockedOut, recordLoginAttempt } from "@/server/auth/throttle";
+
+/** Thrown when an email or IP has too many recent failed sign-ins. */
+export class TooManyAttempts extends CredentialsSignin {
+  code = "too_many_attempts";
+}
 
 // Compared against when the email doesn't exist, so a wrong email takes as
 // long as a wrong password (prevents discovering valid emails by timing).
@@ -26,14 +32,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // Normal login: email + password.
     Credentials({
       credentials: { email: {}, password: {} },
-      async authorize(raw) {
+      async authorize(raw, request) {
         const parsed = loginSchema.safeParse(raw);
         if (!parsed.success) return null;
 
         const { email, password } = parsed.data;
+        const ip = clientIp(request);
+        if (await isLockedOut(email, ip)) throw new TooManyAttempts();
+
         const user = await prisma.user.findUnique({ where: { email } });
         const valid = await bcrypt.compare(password, user?.passwordHash ?? DUMMY_HASH);
-        if (!user || !user.isActive || !valid) return null;
+        const ok = Boolean(user && user.isActive && valid);
+        await recordLoginAttempt(email, ip, ok);
+        if (!user || !ok) return null;
 
         return toSessionUser(user);
       },

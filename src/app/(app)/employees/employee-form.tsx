@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox, Field, FormMessage, SelectField } from "@/components/ui/field";
 import { formDataToObject } from "@/lib/forms/form-data";
+import { initialRowKey, useNewRowKey } from "@/lib/forms/row-keys";
 import { useValidatedAction } from "@/lib/forms/use-validated-action";
 import { formatLKR, parseRupees } from "@/lib/money";
 import { employeeSchema } from "@/lib/validation/employee";
@@ -70,9 +71,6 @@ function summarizeDefaults(d: EmployeeDefaults): Summary {
   });
 }
 
-let nextKey = 0;
-const newKey = () => `row-${nextKey++}`;
-
 export function EmployeeForm({
   defaults,
   departments,
@@ -81,7 +79,10 @@ export function EmployeeForm({
   departments: { id: string; name: string }[];
 }) {
   const { state, pending, onSubmit, error } = useValidatedAction(employeeSchema, saveEmployee);
-  const [rows, setRows] = useState(() => defaults.allowances.map((a) => ({ key: newKey(), defaults: a })));
+  const newKey = useNewRowKey("row");
+  const [rows, setRows] = useState(() =>
+    defaults.allowances.map((a, i) => ({ key: initialRowKey("row", i), defaults: a })),
+  );
   const [summary, setSummary] = useState(() => summarizeDefaults(defaults));
 
   function refreshSummary(event: FormEvent<HTMLFormElement>) {

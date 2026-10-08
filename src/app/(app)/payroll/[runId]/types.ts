@@ -3,6 +3,7 @@ import type { PayrollRates, TaxBracket } from "@/lib/payroll/types";
 /** A payroll item flattened into plain JSON so it can be sent to client components. */
 export type ItemView = {
   id: string;
+  employeeId: string;
   employeeNo: string;
   employeeName: string;
   departmentName: string;

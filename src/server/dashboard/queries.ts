@@ -20,7 +20,17 @@ export async function dashboardData() {
   const first = addMonths(now, -11);
 
   const [runs, sums, activeEmployees] = await Promise.all([
-    prisma.payrollRun.findMany({ select: { id: true, year: true, month: true, status: true } }),
+    prisma.payrollRun.findMany({
+      select: {
+        id: true,
+        year: true,
+        month: true,
+        status: true,
+        epfEmployeeRateBp: true,
+        epfEmployerRateBp: true,
+        etfEmployerRateBp: true,
+      },
+    }),
     prisma.payrollItem.groupBy({
       by: ["runId"],
       _sum: {
@@ -96,6 +106,11 @@ export async function dashboardData() {
       runId: latest.id,
       period: periodLabel(latest),
       status: latest.status,
+      rates: {
+        epfEmployeeRateBp: latest.epfEmployeeRateBp,
+        epfEmployerRateBp: latest.epfEmployerRateBp,
+        etfEmployerRateBp: latest.etfEmployerRateBp,
+      },
       ...totals,
       previousCostCents: previousCost,
       departments,

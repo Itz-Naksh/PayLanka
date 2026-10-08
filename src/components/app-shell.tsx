@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { NavItem, Role } from "@/lib/auth/permissions";
 import { signOutAction } from "@/lib/auth/actions";
 import { cn } from "@/lib/utils";
@@ -100,6 +100,16 @@ export function AppShell({ user, companyName, nav, demo = false, payroll = null,
   const [openedOn, setOpenedOn] = useState<string | null>(null);
   const open = openedOn === pathname;
   const setOpen = (value: boolean) => setOpenedOn(value ? pathname : null);
+
+  // Escape closes the mobile menu (expected behaviour for any dialog).
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpenedOn(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
 
   const sidebar = (
     <div className="flex h-full flex-col">
@@ -182,7 +192,7 @@ export function AppShell({ user, companyName, nav, demo = false, payroll = null,
 
       {/* Mobile drawer */}
       {open ? (
-        <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true">
+        <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true" aria-label="Menu">
           <button
             type="button"
             aria-label="Close menu"

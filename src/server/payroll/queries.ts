@@ -1,7 +1,8 @@
 import "server-only";
 import { prisma } from "@/lib/db";
 import { sumCents } from "@/lib/money";
-import { currentPeriod } from "@/lib/payroll/period";
+import { toHundredths } from "@/lib/payroll/convert";
+import { addMonths, currentPeriod, periodLabel } from "@/lib/payroll/period";
 
 export type RunTotals = {
   employees: number;
@@ -85,4 +86,35 @@ export async function currentMonthRun() {
     select: { id: true, status: true },
   });
   return { period, run };
+}
+
+/** Last month's lines for the same employees, for the pre-approval review checks. */
+export async function previousRunLines(period: { year: number; month: number }) {
+  const before = addMonths(period, -1);
+  const run = await prisma.payrollRun.findUnique({
+    where: { year_month: { year: before.year, month: before.month } },
+    select: {
+      items: {
+        select: {
+          employeeId: true,
+          employeeNo: true,
+          employeeName: true,
+          grossCents: true,
+          netCents: true,
+          otherDeductionsCents: true,
+          overtimeHours: true,
+          noPayDays: true,
+        },
+      },
+    },
+  });
+  if (!run) return null;
+  return {
+    label: periodLabel(before),
+    lines: run.items.map(({ overtimeHours, noPayDays, ...rest }) => ({
+      ...rest,
+      overtimeHundredths: toHundredths(overtimeHours),
+      noPayDaysHundredths: toHundredths(noPayDays),
+    })),
+  };
 }
