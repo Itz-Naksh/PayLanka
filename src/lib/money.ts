@@ -35,6 +35,24 @@ export function divideRounded(numerator: number, denominator: number): number {
   return negative && rounded !== 0 ? -rounded : rounded;
 }
 
+/**
+ * Same rounding as divideRounded, for products too large for a JS number
+ * (e.g. basic salary x OT multiplier x hours). The result must fit back into
+ * a safe integer, which any real payslip amount does.
+ */
+export function divideRoundedBig(numerator: bigint, denominator: bigint): number {
+  if (denominator === BigInt(0)) throw new RangeError("Division by zero");
+  const zero = BigInt(0);
+  const negative = numerator < zero !== denominator < zero;
+  const n = numerator < zero ? -numerator : numerator;
+  const d = denominator < zero ? -denominator : denominator;
+  let quotient = n / d; // BigInt division truncates
+  if ((n % d) * BigInt(2) >= d) quotient += BigInt(1);
+  const result = Number(negative ? -quotient : quotient);
+  if (!Number.isSafeInteger(result)) throw new RangeError("Result is too large");
+  return result === 0 ? 0 : result; // avoid -0
+}
+
 /** Apply a rate in basis points: applyRateBp(10000000, 800) -> 8% of Rs. 100,000.00. */
 export function applyRateBp(amount: Cents, rateBp: number): Cents {
   return divideRounded(amount * rateBp, BP_PER_UNIT);

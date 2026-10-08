@@ -150,11 +150,17 @@ model PayrollRun {
   otMultiplierBp    Int
   noPayDayDivisor   Int
   apitEnabled       Boolean
+  // APIT brackets in force when the run was created ([{fromCents,toCents,rateBp}]), or null.
+  apitBrackets      Json?
   createdById       String
   submittedById     String?
   submittedAt       DateTime?
   approvedById      String?
   approvedAt        DateTime?
+  // Set when an approver sends a run back from Review to Draft.
+  returnedById      String?
+  returnedAt        DateTime?
+  returnNote        String?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
   items             PayrollItem[]

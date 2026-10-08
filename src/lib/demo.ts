@@ -14,14 +14,14 @@ export const DEMO_ACCOUNTS = [
   {
     role: "ADMIN",
     email: "admin@paylanka.test",
-    name: "Anura Admin (demo)",
+    name: "Sophie Admin (demo)",
     label: "Admin",
     description: "Settings, users, approvals — everything",
   },
   {
     role: "HR",
     email: "hr@paylanka.test",
-    name: "Harini HR (demo)",
+    name: "Natasa HR (demo)",
     label: "HR / Accountant",
     description: "Employees, payroll runs and reports",
   },

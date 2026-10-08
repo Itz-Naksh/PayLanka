@@ -18,7 +18,10 @@ export type AuditAction =
   | "PAYROLL_UPDATED"
   | "PAYROLL_SUBMITTED"
   | "PAYROLL_RETURNED"
-  | "PAYROLL_APPROVED";
+  | "PAYROLL_APPROVED"
+  | "PAYROLL_REFRESHED"
+  | "PAYROLL_DELETED"
+  | "TAX_TABLE_UPDATED";
 
 type Actor = { id: string; email: string };
 

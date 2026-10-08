@@ -52,6 +52,33 @@ Passwords are stored only as bcrypt hashes and are never logged.
 
 Never set `DEMO_MODE="true"` for a real company — anyone could sign in as Admin.
 
+## How payroll is calculated
+
+All logic lives in one pure, unit-tested module: [`src/lib/payroll/calculate.ts`](src/lib/payroll/calculate.ts).
+Money is stored as integer cents and rates as basis points (8% = 800), so there is
+no floating-point error. Each component is rounded to the cent (half up) once.
+
+| Item | Formula (defaults — all configurable in Settings) |
+| --- | --- |
+| Overtime | basic ÷ 240 × 1.5 × OT hours |
+| No-pay deduction | basic ÷ 30 × no-pay days (never more than basic) |
+| Gross pay | basic + fixed allowances + extra allowances + overtime − no-pay |
+| EPF/ETF-liable earnings | basic + allowances marked *EPF-liable* − no-pay (overtime excluded) |
+| EPF employee (deducted) | 8% of EPF-liable earnings |
+| EPF employer / ETF employer | 12% / 3% of EPF-liable earnings (company cost) |
+| APIT (optional hook) | progressive brackets on gross pay — **off by default, no rates included** |
+| Net pay | gross − (EPF employee + APIT + other deductions) |
+
+### Workflow
+
+**Draft** (HR/Admin enter overtime, no-pay leave, extra allowances, deductions)
+→ **In review** (read-only) → **Approved** (locked). An Admin can return a run to
+Draft with a note. Whoever submitted a run cannot approve it (segregation of duties).
+
+Approved runs are locked **in the database** by triggers, so they can't be changed
+or deleted even outside the app. Each run keeps a copy of the rates and employee
+details it was created with.
+
 ## Useful scripts
 
 | Script              | What it does                                         |

@@ -12,6 +12,7 @@ import { z } from "zod";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { DEMO_ACCOUNTS, DEMO_PASSWORD, isDemoAccount } from "../src/lib/demo";
 import { passwordField } from "../src/lib/validation/user";
+import { seedPayrollHistory } from "./seed-payroll";
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) throw new Error("DATABASE_URL is not set");
@@ -99,6 +100,9 @@ async function main() {
   console.log("Clearing existing data…");
   // Children before parents, so foreign keys don't block the deletes.
   await prisma.$transaction([
+    // Approved payroll is locked by database triggers; the seed is the one
+    // place allowed to wipe it, and only inside this transaction.
+    prisma.$queryRaw`SELECT set_config('paylanka.allow_purge', 'on', true)`,
     prisma.auditLog.deleteMany(),
     prisma.payrollItemLine.deleteMany(),
     prisma.payrollItem.deleteMany(),
@@ -193,8 +197,11 @@ async function main() {
     ),
   });
 
+  console.log("Creating 12 months of payroll history…");
+  const runs = await seedPayrollHistory(prisma);
+
   console.log(
-    `Done: 1 company, ${departments.size} departments, ${EMPLOYEES.length} employees, 1 admin + 3 demo users.\n` +
+    `Done: ${runs} payroll runs, 1 company, ${departments.size} departments, ${EMPLOYEES.length} employees, 1 admin + 3 demo users.\n` +
       `Sign in as ${seedAdmin.email} (password from .env), or use a demo account (password ${DEMO_PASSWORD}).`,
   );
 }

@@ -13,6 +13,7 @@ export default async function SettingsLayout({ children }: { children: ReactNode
         label="Settings sections"
         tabs={[
           { href: "/settings/company", label: "Company & rates" },
+          { href: "/settings/tax", label: "Income tax (APIT)" },
           { href: "/settings/users", label: "Users" },
         ]}
       />

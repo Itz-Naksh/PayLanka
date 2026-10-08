@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ArrowRight,
   BarChart3,
   Building2,
   KeyRound,
@@ -51,16 +52,47 @@ function groupNav(items: NavItem[]) {
   return groups;
 }
 
+export type PayrollCard = { periodLabel: string; status: "DRAFT" | "REVIEW" | "APPROVED" | null; href: string };
+
+const CARD_STATUS = {
+  DRAFT: { label: "Draft", dot: "bg-white/70", action: "Continue" },
+  REVIEW: { label: "In review", dot: "bg-accent", action: "Review" },
+  APPROVED: { label: "Approved", dot: "bg-success", action: "View" },
+} as const;
+
+function PayrollStatusCard({ card }: { card: PayrollCard }) {
+  const status = card.status ? CARD_STATUS[card.status] : null;
+  return (
+    <Link
+      href={card.href}
+      className="mx-3 mb-3 block rounded-xl bg-white/10 p-3.5 text-sm ring-1 ring-white/10 transition hover:bg-white/15"
+    >
+      <p className="text-[11px] font-semibold tracking-wider text-white/55 uppercase">This month</p>
+      <p className="mt-0.5 font-semibold">{card.periodLabel}</p>
+      <p className="mt-2 flex items-center gap-2 text-white/85">
+        <span className={cn("size-2 rounded-full", status?.dot ?? "bg-white/30")} aria-hidden />
+        Payroll: {status?.label ?? "Not started"}
+      </p>
+      <p className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-accent">
+        {status?.action ?? "Start payroll"}
+        <ArrowRight className="size-3.5" aria-hidden />
+      </p>
+    </Link>
+  );
+}
+
 type AppShellProps = {
   user: { name: string; email: string; role: Role };
   companyName: string;
   nav: NavItem[];
   /** Show the "you are in the public demo" strip. */
   demo?: boolean;
+  /** This month's payroll status card (only for roles that can see payroll). */
+  payroll?: PayrollCard | null;
   children: ReactNode;
 };
 
-export function AppShell({ user, companyName, nav, demo = false, children }: AppShellProps) {
+export function AppShell({ user, companyName, nav, demo = false, payroll = null, children }: AppShellProps) {
   const pathname = usePathname();
   // Remember which page the mobile drawer was opened on; navigating anywhere
   // else closes it automatically, with no effect needed.
@@ -113,6 +145,8 @@ export function AppShell({ user, companyName, nav, demo = false, children }: App
           </div>
         ))}
       </nav>
+
+      {payroll ? <PayrollStatusCard card={payroll} /> : null}
 
       <div className="border-t border-white/10 p-4">
         <p className="truncate text-sm font-medium">{user.name}</p>

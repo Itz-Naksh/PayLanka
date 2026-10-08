@@ -5,6 +5,7 @@ import {
   bpToPercentString,
   centsToDecimalString,
   divideRounded,
+  divideRoundedBig,
   formatLKR,
   formatRateBp,
   parseMultiplierToBp,
@@ -33,6 +34,27 @@ describe("divideRounded", () => {
   it("rejects division by zero and non-integers", () => {
     expect(() => divideRounded(1, 0)).toThrow(RangeError);
     expect(() => divideRounded(1.5, 2)).toThrow(RangeError);
+  });
+});
+
+describe("divideRoundedBig", () => {
+  it("matches divideRounded for normal numbers", () => {
+    expect(divideRoundedBig(BigInt(5), BigInt(2))).toBe(3);
+    expect(divideRoundedBig(BigInt(-5), BigInt(2))).toBe(-3);
+    expect(divideRoundedBig(BigInt(5), BigInt(4))).toBe(1);
+  });
+
+  it("handles products beyond Number.MAX_SAFE_INTEGER exactly", () => {
+    // 2,000,000,000 x 15,000 x 30,000 = 9e17 (> 9.007e15)
+    expect(divideRoundedBig(BigInt(2_000_000_000) * BigInt(15_000) * BigInt(30_000), BigInt(240_000_000))).toBe(3_750_000_000);
+  });
+
+  it("never returns negative zero", () => {
+    expect(Object.is(divideRoundedBig(BigInt(-1), BigInt(3)), 0)).toBe(true);
+  });
+
+  it("rejects division by zero", () => {
+    expect(() => divideRoundedBig(BigInt(1), BigInt(0))).toThrow(RangeError);
   });
 });
 
