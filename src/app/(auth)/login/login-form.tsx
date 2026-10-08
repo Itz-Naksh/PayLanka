@@ -20,6 +20,7 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
         autoComplete="email"
         placeholder="you@company.lk"
         error={error("email")}
+        inputSize="lg"
         required
       />
       <Field
@@ -28,12 +29,13 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
         type="password"
         autoComplete="current-password"
         error={error("password")}
+        inputSize="lg"
         required
       />
       {state.status === "error" && state.message !== "Please fix the highlighted fields." ? (
         <FormMessage status="error" message={state.message} />
       ) : null}
-      <Button type="submit" className="w-full" disabled={pending}>
+      <Button type="submit" size="lg" className="w-full" disabled={pending}>
         {pending ? "Signing in…" : "Sign in"}
       </Button>
     </form>

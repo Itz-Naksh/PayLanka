@@ -49,7 +49,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
       {/* Brand panel (desktop) */}
       <section
         aria-hidden
-        className="relative hidden overflow-hidden bg-primary p-12 text-white lg:flex lg:flex-col lg:justify-between"
+        className="relative hidden overflow-hidden bg-primary p-12 text-white lg:flex lg:flex-col lg:justify-between xl:p-16"
       >
         <div className="auth-pattern absolute inset-0 opacity-60" />
         <div className="absolute -top-24 -left-24 size-80 rounded-full bg-primary-hover/70 blur-2xl" />
@@ -57,28 +57,28 @@ export function AuthLayout({ children }: { children: ReactNode }) {
         {SYMBOLS.map(({ Icon, className }, i) => (
           <Icon key={i} strokeWidth={1.25} className={`absolute text-white/10 ${className}`} />
         ))}
-        <span className="absolute right-[30%] bottom-[38%] text-7xl font-extrabold text-white/[0.07] select-none">
+        <span className="absolute right-[30%] bottom-[38%] text-8xl font-extrabold text-white/[0.07] select-none">
           Rs.
         </span>
 
         <Logo className="relative" large />
 
-        <div className="relative max-w-md">
-          <p className="text-sm font-semibold tracking-widest text-accent uppercase">Smart payroll</p>
-          <h2 className="mt-3 text-4xl leading-tight font-bold">Payroll made simple for Sri Lankan businesses.</h2>
-          <ul className="mt-8 space-y-4">
+        <div className="relative max-w-lg">
+          <p className="text-sm font-semibold tracking-widest text-accent uppercase xl:text-base">Smart payroll</p>
+          <h2 className="mt-4 text-4xl leading-tight font-bold xl:text-5xl xl:leading-tight">Payroll made simple for Sri Lankan businesses.</h2>
+          <ul className="mt-10 space-y-5">
             {FEATURES.map(({ Icon, text }) => (
-              <li key={text} className="flex items-start gap-3 text-white/90">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white/10">
-                  <Icon className="size-4 text-accent" />
+              <li key={text} className="flex items-start gap-4 text-white/90">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/10">
+                  <Icon className="size-5 text-accent" />
                 </span>
-                <span className="pt-1 text-sm leading-relaxed">{text}</span>
+                <span className="pt-2 text-base leading-relaxed">{text}</span>
               </li>
             ))}
           </ul>
         </div>
 
-        <p className="relative text-xs text-white/60">
+        <p className="relative text-sm text-white/65">
           EPF/ETF rates are configurable — verify them against current regulations.
         </p>
       </section>
@@ -95,7 +95,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
         </div>
 
         <div className="flex flex-1 items-center justify-center px-4 py-10 sm:px-8">
-          <div className="w-full max-w-sm">{children}</div>
+          <div className="w-full max-w-md 2xl:max-w-lg">{children}</div>
         </div>
       </section>
     </main>

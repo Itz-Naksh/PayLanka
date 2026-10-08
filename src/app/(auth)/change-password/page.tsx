@@ -21,7 +21,7 @@ export default async function ChangePasswordPage() {
       <span className="flex size-11 items-center justify-center rounded-xl bg-primary-soft text-primary">
         <KeyRound className="size-5" aria-hidden />
       </span>
-      <h1 className="mt-4 text-2xl font-bold tracking-tight">
+      <h1 className="mt-4 text-3xl font-bold tracking-tight">
         {forced ? "Choose your own password" : "Change password"}
       </h1>
       <p className="mt-1 text-sm text-muted">

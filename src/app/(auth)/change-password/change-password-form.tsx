@@ -17,6 +17,7 @@ export function ChangePasswordForm() {
         type="password"
         autoComplete="current-password"
         error={error("currentPassword")}
+        inputSize="lg"
       />
       <Field
         label="New password"
@@ -24,6 +25,7 @@ export function ChangePasswordForm() {
         type="password"
         autoComplete="new-password"
         error={error("newPassword")}
+        inputSize="lg"
         hint="At least 8 characters with a letter and a number."
       />
       <Field
@@ -32,9 +34,10 @@ export function ChangePasswordForm() {
         type="password"
         autoComplete="new-password"
         error={error("confirmPassword")}
+        inputSize="lg"
       />
       <FormMessage status={state.status} message={state.message} />
-      <Button type="submit" className="w-full" disabled={pending}>
+      <Button type="submit" size="lg" className="w-full" disabled={pending}>
         {pending ? "Saving…" : "Change password"}
       </Button>
     </form>

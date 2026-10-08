@@ -25,16 +25,16 @@ export function DemoButtons({ options }: { options: DemoOption[] }) {
             name="role"
             value={option.role}
             disabled={pending}
-            className="group flex w-full items-center gap-3 rounded-xl border border-border bg-surface p-3 text-left transition hover:border-primary/40 hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-60"
+            className="group flex w-full items-center gap-3 rounded-xl border border-border bg-surface p-4 text-left transition hover:border-primary/40 hover:bg-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-60"
           >
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary group-hover:bg-primary group-hover:text-white">
-              <Icon className="size-5" aria-hidden />
+            <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary group-hover:bg-primary group-hover:text-white">
+              <Icon className="size-6" aria-hidden />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block text-sm font-semibold text-foreground">Try as {option.label}</span>
-              <span className="block truncate text-xs text-muted">{option.description}</span>
+              <span className="block text-base font-semibold text-foreground">Try as {option.label}</span>
+              <span className="block truncate text-sm text-muted">{option.description}</span>
             </span>
-            <ArrowRight className="size-4 text-muted transition group-hover:translate-x-0.5 group-hover:text-primary" aria-hidden />
+            <ArrowRight className="size-5 text-muted transition group-hover:translate-x-0.5 group-hover:text-primary" aria-hidden />
           </button>
         );
       })}

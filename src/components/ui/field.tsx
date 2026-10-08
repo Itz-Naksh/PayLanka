@@ -50,11 +50,24 @@ function a11yProps(id: string, error?: string, hint?: string) {
 
 type Common = { label: string; name: string; error?: string; hint?: string; className?: string };
 
-export function Field({ label, name, error, hint, className, id, ...props }: Common & InputHTMLAttributes<HTMLInputElement>) {
+/** `inputSize="lg"` for prominent forms such as sign-in (48px tall, 16px text). */
+export function Field({
+  label,
+  name,
+  error,
+  hint,
+  className,
+  id,
+  inputSize = "md",
+  ...props
+}: Common & InputHTMLAttributes<HTMLInputElement> & { inputSize?: "md" | "lg" }) {
   const inputId = id ?? name;
   return (
     <FormField label={label} htmlFor={inputId} error={error} hint={hint} className={className}>
-      <input id={inputId} name={name} className={cn(controlClasses(error), "h-10")} {...a11yProps(inputId, error, hint)} {...props} />
+      <input
+        id={inputId}
+        name={name}
+        className={cn(controlClasses(error), inputSize === "lg" ? "h-12 px-4 text-base" : "h-10")} {...a11yProps(inputId, error, hint)} {...props} />
     </FormField>
   );
 }
