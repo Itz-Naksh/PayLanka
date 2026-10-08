@@ -52,7 +52,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 /** For pages: redirect to /login or /forbidden instead of rendering. */
 export async function requirePermission(permission: Permission): Promise<CurrentUser> {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/session-ended");
   // A temporary password must be replaced before anything else.
   if (user.mustChangePassword) redirect("/change-password");
   if (!hasPermission(user.role, permission)) redirect("/forbidden");

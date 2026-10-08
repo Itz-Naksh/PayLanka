@@ -8,13 +8,20 @@ import { LoginForm } from "./login-form";
 export const metadata: Metadata = { title: "Sign in" };
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
-  const { callbackUrl } = await searchParams;
+  const { callbackUrl, reason } = await searchParams;
   const demo = isDemoMode();
 
   return (
     <AuthLayout>
       <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
       <p className="mt-1 text-sm text-muted">Sign in with the account your administrator gave you.</p>
+
+      {reason === "session-ended" ? (
+        <p role="status" className="mt-6 flex items-start gap-2 rounded-lg bg-accent-soft p-3 text-sm ring-1 ring-accent/40">
+          <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
+          Your session has ended or your account changed. Please sign in again.
+        </p>
+      ) : null}
 
       <div className="mt-8">
         <LoginForm callbackUrl={typeof callbackUrl === "string" ? callbackUrl : undefined} />

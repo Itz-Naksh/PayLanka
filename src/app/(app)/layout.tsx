@@ -8,7 +8,7 @@ import { isLockedDemoUser } from "@/server/guard";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/session-ended");
   if (user.mustChangePassword) redirect("/change-password");
 
   const company = await prisma.companySettings.findUnique({

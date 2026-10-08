@@ -12,7 +12,7 @@ export const metadata = { title: "Change password" };
 
 export default async function ChangePasswordPage() {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/session-ended");
   const forced = user.mustChangePassword;
   const lockedDemo = isDemoMode() && isDemoAccount(user.email);
 

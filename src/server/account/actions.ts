@@ -16,7 +16,7 @@ import { DEMO_BLOCKED_MESSAGE, isLockedDemoUser } from "@/server/guard";
  */
 export async function changeOwnPassword(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/session-ended");
   if (isLockedDemoUser(user)) return errorState(DEMO_BLOCKED_MESSAGE);
 
   const parsed = parseFormData(changePasswordSchema, formData);

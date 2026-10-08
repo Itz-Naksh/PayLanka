@@ -31,6 +31,8 @@ export const authConfig = {
       const user = auth?.user;
       const path = nextUrl.pathname;
 
+      // Clears a stale cookie; must work whether or not the cookie looks valid.
+      if (path === "/session-ended") return true;
       if (path === "/login") {
         return user ? Response.redirect(new URL(homePathFor(user.role), nextUrl)) : true;
       }
