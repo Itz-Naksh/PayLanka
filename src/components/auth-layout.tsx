@@ -28,13 +28,16 @@ const FEATURES = [
   { Icon: BadgeCheck, text: "Draft → Review → Approved workflow with a full audit trail" },
 ];
 
-function Logo({ className = "" }: { className?: string }) {
+/** `large` on the desktop brand panel; the compact mobile band keeps the smaller size. */
+function Logo({ className = "", large = false }: { className?: string; large?: boolean }) {
   return (
-    <div className={`flex items-center gap-2.5 ${className}`}>
-      <span className="flex size-10 items-center justify-center rounded-xl bg-accent text-primary-hover">
-        <Wallet className="size-5" aria-hidden />
+    <div className={`flex items-center ${large ? "gap-3" : "gap-2.5"} ${className}`}>
+      <span
+        className={`flex items-center justify-center rounded-xl bg-accent text-primary-hover ${large ? "size-12" : "size-10"}`}
+      >
+        <Wallet className={large ? "size-6" : "size-5"} aria-hidden />
       </span>
-      <span className="text-xl font-bold tracking-tight">PayLanka</span>
+      <span className={`font-bold tracking-tight ${large ? "text-2xl" : "text-xl"}`}>PayLanka</span>
     </div>
   );
 }
@@ -58,7 +61,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
           Rs.
         </span>
 
-        <Logo className="relative" />
+        <Logo className="relative" large />
 
         <div className="relative max-w-md">
           <p className="text-sm font-semibold tracking-widest text-accent uppercase">Smart payroll</p>
