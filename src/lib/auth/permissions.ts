@@ -54,16 +54,18 @@ export function homePathFor(role: Role): string {
   return role === "EMPLOYEE" ? "/my/payslips" : "/dashboard";
 }
 
-export type NavItem = { href: string; label: string; permission: Permission };
+export type NavGroup = "Overview" | "Payroll" | "Administration" | "My pay";
+
+export type NavItem = { href: string; label: string; permission: Permission; group: NavGroup };
 
 export const NAV_ITEMS: readonly NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", permission: "dashboard:view" },
-  { href: "/employees", label: "Employees", permission: "employees:read" },
-  { href: "/payroll", label: "Payroll", permission: "payroll:read" },
-  { href: "/reports", label: "Reports", permission: "reports:read" },
-  { href: "/audit-log", label: "Audit log", permission: "audit:read" },
-  { href: "/settings", label: "Settings", permission: "settings:manage" },
-  { href: "/my/payslips", label: "My payslips", permission: "payslips:own" },
+  { href: "/dashboard", label: "Dashboard", permission: "dashboard:view", group: "Overview" },
+  { href: "/employees", label: "Employees", permission: "employees:read", group: "Payroll" },
+  { href: "/payroll", label: "Payroll", permission: "payroll:read", group: "Payroll" },
+  { href: "/reports", label: "Reports", permission: "reports:read", group: "Payroll" },
+  { href: "/audit-log", label: "Audit log", permission: "audit:read", group: "Administration" },
+  { href: "/settings", label: "Settings", permission: "settings:manage", group: "Administration" },
+  { href: "/my/payslips", label: "My payslips", permission: "payslips:own", group: "My pay" },
 ];
 
 export function navItemsFor(role: Role): NavItem[] {

@@ -40,6 +40,17 @@ const ROLE_LABELS: Record<Role, string> = {
   EMPLOYEE: "Employee",
 };
 
+/** Keep the order of NAV_ITEMS, but bundle consecutive items under their group heading. */
+function groupNav(items: NavItem[]) {
+  const groups: { group: string; items: NavItem[] }[] = [];
+  for (const item of items) {
+    const last = groups.at(-1);
+    if (last?.group === item.group) last.items.push(item);
+    else groups.push({ group: item.group, items: [item] });
+  }
+  return groups;
+}
+
 type AppShellProps = {
   user: { name: string; email: string; role: Role };
   companyName: string;
@@ -72,27 +83,35 @@ export function AppShell({ user, companyName, nav, demo = false, children }: App
         <span className="line-clamp-2">{companyName}</span>
       </div>
 
-      <nav className="flex-1 space-y-1 px-3" aria-label="Main">
-        {nav.map((item) => {
-          const Icon = ICONS[item.href] ?? FileText;
-          const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-current={active ? "page" : undefined}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                active
-                  ? "bg-white/15 text-white shadow-[inset_3px_0_0_var(--color-accent)]"
-                  : "text-white/80 hover:bg-white/10 hover:text-white",
-              )}
-            >
-              <Icon className="size-4.5" aria-hidden />
-              {item.label}
-            </Link>
-          );
-        })}
+      <nav className="flex-1 space-y-5 overflow-y-auto px-3 pb-4" aria-label="Main">
+        {groupNav(nav).map(({ group, items }) => (
+          <div key={group}>
+            <p className="px-3 pb-1.5 text-[11px] font-semibold tracking-wider text-white/55 uppercase">{group}</p>
+            <ul className="space-y-1">
+              {items.map((item) => {
+                const Icon = ICONS[item.href] ?? FileText;
+                const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      aria-current={active ? "page" : undefined}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                        active
+                          ? "bg-white/15 text-white shadow-[inset_3px_0_0_var(--color-accent)]"
+                          : "text-white/80 hover:bg-white/10 hover:text-white",
+                      )}
+                    >
+                      <Icon className="size-4.5" aria-hidden />
+                      {item.label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
       </nav>
 
       <div className="border-t border-white/10 p-4">
