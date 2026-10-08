@@ -65,7 +65,8 @@ function PayrollStatusCard({ card }: { card: PayrollCard }) {
   return (
     <Link
       href={card.href}
-      className="mx-3 mb-3 block rounded-xl bg-white/10 p-3.5 text-sm ring-1 ring-white/10 transition hover:bg-white/15"
+      // Only on screens tall enough for the whole menu; the menu always wins.
+      className="mx-3 mb-3 hidden rounded-xl bg-white/10 p-3.5 text-sm ring-1 ring-white/10 transition hover:bg-white/15 [@media(min-height:760px)]:block"
     >
       <p className="text-[11px] font-semibold tracking-wider text-white/55 uppercase">This month</p>
       <p className="mt-0.5 font-semibold">{card.periodLabel}</p>
@@ -115,7 +116,8 @@ export function AppShell({ user, companyName, nav, demo = false, payroll = null,
         <span className="line-clamp-2">{companyName}</span>
       </div>
 
-      <nav className="flex-1 space-y-5 overflow-y-auto px-3 pb-4" aria-label="Main">
+      {/* min-h-0 lets the menu shrink and scroll on short screens instead of sliding under the card below. */}
+      <nav className="min-h-0 flex-1 space-y-5 overflow-y-auto px-3 pb-4" aria-label="Main">
         {groupNav(nav).map(({ group, items }) => (
           <div key={group}>
             <p className="px-3 pb-1.5 text-[11px] font-semibold tracking-wider text-white/55 uppercase">{group}</p>

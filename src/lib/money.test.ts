@@ -6,6 +6,7 @@ import {
   centsToDecimalString,
   divideRounded,
   divideRoundedBig,
+  formatCompactLKR,
   formatLKR,
   formatRateBp,
   parseMultiplierToBp,
@@ -145,6 +146,15 @@ describe("formatting", () => {
   it("formats plain decimal strings", () => {
     expect(centsToDecimalString(12_500_050)).toBe("125000.50");
     expect(centsToDecimalString(-7)).toBe("-0.07");
+  });
+
+  it("formats compact amounts for chart axes", () => {
+    expect(formatCompactLKR(214_500_000)).toBe("Rs. 2.1M");
+    expect(formatCompactLKR(200_000_000)).toBe("Rs. 2M");
+    expect(formatCompactLKR(4_500_000)).toBe("Rs. 45K");
+    expect(formatCompactLKR(125_000)).toBe("Rs. 1.3K");
+    expect(formatCompactLKR(50_000)).toBe("Rs. 500");
+    expect(formatCompactLKR(0)).toBe("Rs. 0");
   });
 
   it("formats rates", () => {

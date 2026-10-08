@@ -134,3 +134,12 @@ export function bpToMultiplierString(bp: number): string {
 export function sumCents(values: readonly Cents[]): Cents {
   return values.reduce((total, value) => total + value, 0);
 }
+
+/** Short form for chart axes: 214_500_000 cents -> "Rs. 2.1M", 4_500_000 -> "Rs. 45K". */
+export function formatCompactLKR(cents: Cents): string {
+  const rupees = cents / 100;
+  const abs = Math.abs(rupees);
+  const [value, suffix] = abs >= 1_000_000 ? [rupees / 1_000_000, "M"] : abs >= 1_000 ? [rupees / 1_000, "K"] : [rupees, ""];
+  const digits = Math.abs(value) >= 100 || Number.isInteger(value) ? 0 : 1;
+  return `Rs. ${value.toFixed(digits).replace(/\.0$/, "")}${suffix}`;
+}
