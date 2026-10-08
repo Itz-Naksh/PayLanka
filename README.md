@@ -178,6 +178,8 @@ Your own Admin is the one in `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`.
 
 1. **Database** — create a project at [neon.tech](https://neon.tech). Copy two connection strings:
    the **pooled** one (host contains `-pooler`) and the **direct** one.
+   Choose the **AWS Asia Pacific (Singapore)** region: `vercel.json` runs the app in Vercel's
+   Singapore region (`sin1`) so the app and the database sit side by side.
 2. **Code** — push this repository to GitHub.
 3. **Vercel** — *Add New → Project*, import the repository, and add the environment variables:
    `DATABASE_URL` (pooled), `DIRECT_DATABASE_URL` (direct), `AUTH_SECRET`, `DEMO_MODE`, `CRON_SECRET`,
