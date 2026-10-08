@@ -66,9 +66,10 @@ export function AppShell({ user, companyName, nav, demo = false, children }: App
         <span className="text-lg font-semibold tracking-tight">PayLanka</span>
       </div>
 
-      <div className="flex items-center gap-2 px-5 py-4 text-sm text-white/80">
-        <Building2 className="size-4 shrink-0" aria-hidden />
-        <span className="truncate">{companyName}</span>
+      {/* Up to two lines, so long names like "… (Pvt) Ltd" aren't cut off. */}
+      <div className="flex items-start gap-2 px-5 py-4 text-sm leading-snug text-white/80" title={companyName}>
+        <Building2 className="mt-0.5 size-4 shrink-0" aria-hidden />
+        <span className="line-clamp-2">{companyName}</span>
       </div>
 
       <nav className="flex-1 space-y-1 px-3" aria-label="Main">
