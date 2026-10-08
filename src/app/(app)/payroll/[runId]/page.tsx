@@ -11,6 +11,8 @@ import { formatDateTime } from "@/lib/format";
 import { formatRateBp } from "@/lib/money";
 import { toHundredths, ratesOf } from "@/lib/payroll/convert";
 import { periodLabel } from "@/lib/payroll/period";
+import { ACTION_LABELS, describeEntry } from "@/lib/audit-format";
+import { runActivity } from "@/server/audit/queries";
 import { getRunDetail } from "@/server/payroll/queries";
 import { runBrackets } from "@/server/payroll/engine";
 import { ItemsTable } from "./items-table";
@@ -22,7 +24,7 @@ export const metadata = { title: "Payroll run" };
 export default async function PayrollRunPage({ params }: PageProps<"/payroll/[runId]">) {
   const user = await requirePermission("payroll:read");
   const { runId } = await params;
-  const detail = await getRunDetail(runId);
+  const [detail, activity] = await Promise.all([getRunDetail(runId), runActivity(runId)]);
   if (!detail) notFound();
   const { run, totals, people } = detail;
 
@@ -160,6 +162,26 @@ export default async function PayrollRunPage({ params }: PageProps<"/payroll/[ru
             <p className="mt-3 text-xs text-muted">
               Copied from Settings when the run was created{run.status === "DRAFT" ? " — use Refresh to pick up changes" : ""}.
             </p>
+          </Card>
+          <Card className="p-5 text-sm">
+            <h2 className="font-semibold">Activity</h2>
+            {activity.length === 0 ? (
+              <p className="mt-2 text-muted">No activity yet.</p>
+            ) : (
+              <ol className="mt-3 max-h-80 space-y-3 overflow-y-auto pr-1">
+                {activity.map((entry) => (
+                  <li key={entry.id}>
+                    <p className="font-medium">{ACTION_LABELS[entry.action] ?? entry.action}</p>
+                    {entry.action === "PAYROLL_UPDATED" || entry.action === "PAYROLL_RETURNED" ? (
+                      <p className="text-muted">{describeEntry(entry.action, entry.metadata)}</p>
+                    ) : null}
+                    <p className="text-xs text-muted">
+                      {entry.actorEmail} · {formatDateTime(entry.createdAt)}
+                    </p>
+                  </li>
+                ))}
+              </ol>
+            )}
           </Card>
         </div>
       </div>

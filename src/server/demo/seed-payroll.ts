@@ -6,11 +6,11 @@
  * Inputs (overtime, no-pay leave, bonuses, advances) are generated from a fixed
  * formula rather than Math.random(), so every seed produces the same numbers.
  */
-import type { PrismaClient } from "../src/generated/prisma/client";
-import { calculatePayroll } from "../src/lib/payroll/calculate";
-import { hundredthsToDecimal, itemResultColumns, ratesOf } from "../src/lib/payroll/convert";
-import { addMonths, currentPeriod, lastDayOfPeriod, periodIndex, type Period } from "../src/lib/payroll/period";
-import type { DeductionLine, EarningLine } from "../src/lib/payroll/types";
+import type { PrismaClient } from "@/generated/prisma/client";
+import { calculatePayroll } from "@/lib/payroll/calculate";
+import { hundredthsToDecimal, itemResultColumns, ratesOf } from "@/lib/payroll/convert";
+import { addMonths, currentPeriod, lastDayOfPeriod, periodIndex, type Period } from "@/lib/payroll/period";
+import type { DeductionLine, EarningLine } from "@/lib/payroll/types";
 
 /** Deterministic "random" number 0–99 for an employee in a month. */
 function pseudo(employeeIndex: number, month: number, salt: number): number {
@@ -119,16 +119,53 @@ export async function seedPayrollHistory(prisma: PrismaClient): Promise<number> 
       },
     });
 
+    const approvedAt = new Date(runDate.getTime() + 26 * 60 * 60 * 1000);
     if (monthsBack > 0) {
       await prisma.payrollRun.update({
         where: { id: run.id },
-        data: {
-          status: "APPROVED",
-          approvedById: admin.id,
-          approvedAt: new Date(runDate.getTime() + 26 * 60 * 60 * 1000),
-        },
+        data: { status: "APPROVED", approvedById: admin.id, approvedAt },
       });
     }
+
+    // Matching audit trail, so the demo's audit log tells the same story.
+    const gross = items.reduce((sum, i) => sum + i.grossCents, 0);
+    const net = items.reduce((sum, i) => sum + i.netCents, 0);
+    const periodName = new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric", timeZone: "UTC" }).format(
+      new Date(Date.UTC(period.year, period.month - 1, 1)),
+    );
+    const entity = { entityType: "PayrollRun", entityId: run.id };
+    await prisma.auditLog.createMany({
+      data: [
+        {
+          ...entity,
+          actorId: hr.id,
+          actorEmail: hr.email,
+          action: "PAYROLL_CREATED",
+          createdAt: runDate,
+          metadata: { period: periodName, employees: items.length },
+        },
+        {
+          ...entity,
+          actorId: hr.id,
+          actorEmail: hr.email,
+          action: "PAYROLL_SUBMITTED",
+          createdAt: new Date(runDate.getTime() + 2 * 60 * 60 * 1000),
+          metadata: { period: periodName },
+        },
+        ...(monthsBack > 0
+          ? [
+              {
+                ...entity,
+                actorId: admin.id,
+                actorEmail: admin.email,
+                action: "PAYROLL_APPROVED",
+                createdAt: approvedAt,
+                metadata: { period: periodName, employees: items.length, grossCents: gross, netCents: net },
+              },
+            ]
+          : []),
+      ],
+    });
     created++;
   }
   return created;

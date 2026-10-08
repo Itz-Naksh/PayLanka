@@ -274,3 +274,16 @@ describe("input validation", () => {
     expect(() => calc(employee(), { ...DEFAULT_RATES, noPayDayDivisor: 0 })).toThrow(RangeError);
   });
 });
+
+describe("README worked example", () => {
+  // Keep in sync with "How payroll is calculated" in README.md.
+  it("matches the figures documented in the README", () => {
+    const r = calc(employee({ overtimeHundredths: 1_000, noPayDaysHundredths: 200 }));
+    expect(r.overtimeCents).toBe(531_250); // 5,312.50
+    expect(r.noPayCents).toBe(566_667); // 5,666.67
+    expect(r.grossCents).toBe(9_314_583); // 93,145.83
+    expect(r.epfLiableCents).toBe(8_433_333); // 84,333.33
+    expect([r.epfEmployeeCents, r.epfEmployerCents, r.etfEmployerCents]).toEqual([674_667, 1_012_000, 253_000]);
+    expect(r.netCents).toBe(8_639_916); // 86,399.16
+  });
+});

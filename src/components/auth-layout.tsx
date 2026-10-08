@@ -13,13 +13,14 @@ import {
 import type { ReactNode } from "react";
 
 // Decorative payroll symbols scattered over the brand panel (purely visual).
+// Positions keep every symbol clear of the headline, the feature list and the footer note.
 const SYMBOLS: { Icon: LucideIcon; className: string }[] = [
-  { Icon: ReceiptText, className: "top-[12%] right-[10%] size-16 rotate-12" },
-  { Icon: CalendarDays, className: "top-[38%] right-[22%] size-12 -rotate-6" },
-  { Icon: Banknote, className: "bottom-[22%] right-[8%] size-20 -rotate-12" },
-  { Icon: Landmark, className: "bottom-[8%] left-[38%] size-12 rotate-6" },
+  { Icon: ReceiptText, className: "top-[10%] right-[10%] size-16 rotate-12" },
   { Icon: ChartColumn, className: "top-[20%] left-[46%] size-10 rotate-3" },
-  { Icon: ShieldCheck, className: "top-[58%] left-[52%] size-9 -rotate-12" },
+  { Icon: CalendarDays, className: "top-[31%] right-[8%] size-12 -rotate-6" },
+  { Icon: Banknote, className: "top-[47%] right-[5%] size-20 -rotate-12" },
+  { Icon: ShieldCheck, className: "top-[67%] right-[12%] size-9 -rotate-12" },
+  { Icon: Landmark, className: "bottom-[15%] left-[42%] size-12 rotate-6" },
 ];
 
 const FEATURES = [
@@ -57,7 +58,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
         {SYMBOLS.map(({ Icon, className }, i) => (
           <Icon key={i} strokeWidth={1.25} className={`absolute text-white/10 ${className}`} />
         ))}
-        <span className="absolute right-[30%] bottom-[38%] text-8xl font-extrabold text-white/[0.07] select-none">
+        <span className="absolute right-[6%] bottom-[12%] text-8xl font-extrabold text-white/[0.07] select-none">
           Rs.
         </span>
 

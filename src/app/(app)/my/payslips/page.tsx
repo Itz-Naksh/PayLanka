@@ -47,10 +47,27 @@ export default async function MyPayslipsPage() {
               <li key={item.id} className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center">
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold">{periodLabel(item.run)}</p>
-                  <p className="text-sm text-muted">
-                    Gross <Money cents={item.grossCents} /> · Deductions <Money cents={item.totalDeductionsCents} />
-                    {item.run.approvedAt ? ` · Approved ${formatDate(item.run.approvedAt)}` : ""}
-                  </p>
+                  {/* Fixed columns: real gaps between figures, aligned from row to row. */}
+                  <dl className="mt-1.5 grid max-w-md grid-cols-3 gap-x-6 text-sm">
+                    <div>
+                      <dt className="text-xs text-muted">Gross</dt>
+                      <dd>
+                        <Money cents={item.grossCents} />
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted">Deductions</dt>
+                      <dd>
+                        <Money cents={item.totalDeductionsCents} />
+                      </dd>
+                    </div>
+                    {item.run.approvedAt ? (
+                      <div>
+                        <dt className="text-xs text-muted">Approved</dt>
+                        <dd>{formatDate(item.run.approvedAt)}</dd>
+                      </div>
+                    ) : null}
+                  </dl>
                 </div>
                 <div className="flex items-center justify-between gap-4 sm:justify-end">
                   <div className="text-right">
