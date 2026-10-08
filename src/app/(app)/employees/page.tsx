@@ -114,7 +114,7 @@ export default async function EmployeesPage({ searchParams }: PageProps<"/employ
                   <tr key={e.id} className="group relative hover:bg-background">
                     <td className="px-4 py-3 font-mono text-xs text-muted">{e.employeeNo}</td>
                     <td className="px-4 py-3">
-                      <Link href={`/employees/${e.id}`} className="font-semibold text-foreground after:absolute after:inset-0">
+                      <Link href={`/employees/${e.id}`} className="text-[15px] font-semibold text-foreground after:absolute after:inset-0">
                         {e.firstName} {e.lastName}
                       </Link>
                       <p className="text-xs text-muted">{e.designation}</p>

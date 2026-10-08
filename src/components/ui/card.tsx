@@ -17,7 +17,7 @@ export function PageHeader({
   return (
     <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">{title}</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">{title}</h1>
         {description ? <p className="mt-1 text-sm text-muted">{description}</p> : null}
       </div>
       {actions ? <div className="flex gap-2">{actions}</div> : null}
@@ -29,7 +29,7 @@ export function StatCard({ label, value, hint }: { label: string; value: ReactNo
   return (
     <Card className="p-5">
       <p className="text-sm font-medium text-muted">{label}</p>
-      <p className="money mt-2 text-2xl font-bold tracking-tight text-foreground">{value}</p>
+      <p className="money mt-2 text-2xl font-bold tracking-tight text-foreground xl:text-3xl">{value}</p>
       {hint ? <p className="mt-1 text-xs text-muted">{hint}</p> : null}
     </Card>
   );

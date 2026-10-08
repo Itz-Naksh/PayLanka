@@ -48,7 +48,7 @@ export function ItemsTable({
                 <Fragment key={item.id}>
                   <tr className={cn("border-t border-border", open ? "bg-primary-soft/50" : "hover:bg-background")}>
                     <td className="px-4 py-3">
-                      <p className="font-semibold">{item.employeeName}</p>
+                      <p className="text-[15px] font-semibold">{item.employeeName}</p>
                       <p className="text-xs text-muted">
                         {item.employeeNo} · {item.departmentName}
                       </p>
