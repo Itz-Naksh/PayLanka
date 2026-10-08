@@ -54,6 +54,9 @@ model User {
   passwordHash String
   role         Role
   isActive     Boolean   @default(true)
+  // True after an Admin sets a temporary password; the user must pick their
+  // own password before they can use the app.
+  mustChangePassword Boolean @default(false)
   // Links an EMPLOYEE-role login to their own employee record (self-service payslips).
   employeeId   String?   @unique
   employee     Employee? @relation(fields: [employeeId], references: [id])

@@ -46,3 +46,10 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+
+/* Subtle dotted grid for the sign-in brand panel. */
+.auth-pattern {
+  background-image: radial-gradient(rgb(255 255 255 / 0.14) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(to bottom, black, transparent 85%);
+}

@@ -3,6 +3,7 @@
 import {
   BarChart3,
   Building2,
+  KeyRound,
   FileText,
   History,
   LayoutDashboard,
@@ -10,6 +11,7 @@ import {
   Menu,
   Receipt,
   Settings,
+  Sparkles,
   Users,
   Wallet,
   X,
@@ -42,10 +44,12 @@ type AppShellProps = {
   user: { name: string; email: string; role: Role };
   companyName: string;
   nav: NavItem[];
+  /** Show the "you are in the public demo" strip. */
+  demo?: boolean;
   children: ReactNode;
 };
 
-export function AppShell({ user, companyName, nav, children }: AppShellProps) {
+export function AppShell({ user, companyName, nav, demo = false, children }: AppShellProps) {
   const pathname = usePathname();
   // Remember which page the mobile drawer was opened on; navigating anywhere
   // else closes it automatically, with no effect needed.
@@ -93,7 +97,14 @@ export function AppShell({ user, companyName, nav, children }: AppShellProps) {
       <div className="border-t border-white/10 p-4">
         <p className="truncate text-sm font-medium">{user.name}</p>
         <p className="truncate text-xs text-white/70">{ROLE_LABELS[user.role]}</p>
-        <form action={signOutAction} className="mt-3">
+        <Link
+          href="/change-password"
+          className="mt-3 flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-white/80 hover:bg-white/10 hover:text-white"
+        >
+          <KeyRound className="size-4" aria-hidden />
+          Change password
+        </Link>
+        <form action={signOutAction}>
           <button
             type="submit"
             className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-white/80 hover:bg-white/10 hover:text-white"
@@ -148,6 +159,15 @@ export function AppShell({ user, companyName, nav, children }: AppShellProps) {
           </button>
           <span className="font-semibold">PayLanka</span>
         </header>
+        {demo ? (
+          <div className="flex items-center justify-center gap-2 border-b border-accent/40 bg-accent-soft px-4 py-2 text-center text-sm text-foreground">
+            <Sparkles className="size-4 shrink-0 text-warning-ink" aria-hidden />
+            <span>
+              <strong className="font-semibold">Demo mode</strong> — you&apos;re exploring sample data shared with other
+              visitors. It resets regularly.
+            </span>
+          </div>
+        ) : null}
         <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
       </div>
     </div>

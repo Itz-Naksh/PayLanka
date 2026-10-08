@@ -1,11 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
   applyRateBp,
+  bpToMultiplierString,
+  bpToPercentString,
   centsToDecimalString,
   divideRounded,
   formatLKR,
   formatRateBp,
+  parseMultiplierToBp,
+  parsePercentToBp,
   parseRupees,
+  parseScaledDecimal,
   sumCents,
 } from "./money";
 
@@ -70,6 +75,39 @@ describe("parseRupees", () => {
   it("avoids floating-point drift", () => {
     // 0.1 + 0.2 style inputs must stay exact.
     expect(sumCents([parseRupees("0.10")!, parseRupees("0.20")!])).toBe(30);
+  });
+});
+
+describe("rate parsing", () => {
+  it("parses percentages into basis points", () => {
+    expect(parsePercentToBp("8")).toBe(800);
+    expect(parsePercentToBp("12.5")).toBe(1250);
+    expect(parsePercentToBp("0.25")).toBe(25);
+    expect(parsePercentToBp(" 3 ")).toBe(300);
+  });
+
+  it("rejects bad percentages", () => {
+    expect(parsePercentToBp("8.125")).toBeNull(); // finer than 0.01%
+    expect(parsePercentToBp("-1")).toBeNull();
+    expect(parsePercentToBp("abc")).toBeNull();
+    expect(parsePercentToBp("")).toBeNull();
+  });
+
+  it("parses multipliers", () => {
+    expect(parseMultiplierToBp("1.5")).toBe(15_000);
+    expect(parseMultiplierToBp("2")).toBe(20_000);
+    expect(parseMultiplierToBp("1.25")).toBe(12_500);
+  });
+
+  it("round-trips to editable strings", () => {
+    expect(bpToPercentString(1250)).toBe("12.5");
+    expect(bpToPercentString(800)).toBe("8");
+    expect(bpToMultiplierString(15_000)).toBe("1.5");
+  });
+
+  it("parses scaled decimals exactly", () => {
+    expect(parseScaledDecimal("2.5", 2)).toBe(250);
+    expect(parseScaledDecimal("10", 2)).toBe(1000);
   });
 });
 

@@ -11,6 +11,7 @@ export type CurrentUser = {
   email: string;
   role: Role;
   employeeId: string | null;
+  mustChangePassword: boolean;
 };
 
 /**
@@ -26,17 +27,34 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { id: true, name: true, email: true, role: true, employeeId: true, isActive: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      employeeId: true,
+      isActive: true,
+      mustChangePassword: true,
+    },
   });
   if (!user || !user.isActive) return null;
 
-  return { id: user.id, name: user.name, email: user.email, role: user.role, employeeId: user.employeeId };
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    employeeId: user.employeeId,
+    mustChangePassword: user.mustChangePassword,
+  };
 });
 
 /** For pages: redirect to /login or /forbidden instead of rendering. */
 export async function requirePermission(permission: Permission): Promise<CurrentUser> {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
+  // A temporary password must be replaced before anything else.
+  if (user.mustChangePassword) redirect("/change-password");
   if (!hasPermission(user.role, permission)) redirect("/forbidden");
   return user;
 }
@@ -55,6 +73,9 @@ export class AuthorizationError extends Error {
 export async function assertPermission(permission: Permission): Promise<CurrentUser> {
   const user = await getCurrentUser();
   if (!user) throw new AuthorizationError("You are not signed in.", 401);
+  if (user.mustChangePassword) {
+    throw new AuthorizationError("Please change your temporary password first.", 403);
+  }
   if (!hasPermission(user.role, permission)) {
     throw new AuthorizationError("You do not have permission to do that.", 403);
   }

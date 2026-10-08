@@ -79,6 +79,40 @@ export function formatRateBp(rateBp: number): string {
   return `${Number.isInteger(percent) ? percent : percent.toFixed(2).replace(/0+$/, "")}%`;
 }
 
+/**
+ * Parse a non-negative decimal string into an integer scaled by 10^decimals,
+ * without floats: parseScaledDecimal("8.25", 2) -> 825.
+ * Returns null if the input has more decimal places than allowed.
+ */
+export function parseScaledDecimal(input: string, decimals: number): number | null {
+  const match = /^(\d+)(?:\.(\d+))?$/.exec(input.trim());
+  if (!match) return null;
+  const [, whole, fraction = ""] = match;
+  if (fraction.length > decimals) return null;
+  const value = Number(whole) * 10 ** decimals + Number(fraction.padEnd(decimals, "0") || "0");
+  return Number.isSafeInteger(value) ? value : null;
+}
+
+/** "8" -> 800 bp, "12.5" -> 1250 bp. */
+export function parsePercentToBp(input: string): number | null {
+  return parseScaledDecimal(input, 2);
+}
+
+/** Basis points back to an editable string: 1250 -> "12.5". */
+export function bpToPercentString(rateBp: number): string {
+  return formatRateBp(rateBp).replace("%", "");
+}
+
+/** Multiplier such as "1.5" -> 15000 bp (150%). */
+export function parseMultiplierToBp(input: string): number | null {
+  return parseScaledDecimal(input, 4);
+}
+
+/** 15000 -> "1.5". */
+export function bpToMultiplierString(bp: number): string {
+  return String(bp / BP_PER_UNIT);
+}
+
 export function sumCents(values: readonly Cents[]): Cents {
   return values.reduce((total, value) => total + value, 0);
 }

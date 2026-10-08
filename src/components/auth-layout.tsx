@@ -1,0 +1,100 @@
+import {
+  BadgeCheck,
+  Banknote,
+  CalendarDays,
+  ChartColumn,
+  FileText,
+  Landmark,
+  ReceiptText,
+  ShieldCheck,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
+import type { ReactNode } from "react";
+
+// Decorative payroll symbols scattered over the brand panel (purely visual).
+const SYMBOLS: { Icon: LucideIcon; className: string }[] = [
+  { Icon: ReceiptText, className: "top-[12%] right-[10%] size-16 rotate-12" },
+  { Icon: CalendarDays, className: "top-[38%] right-[22%] size-12 -rotate-6" },
+  { Icon: Banknote, className: "bottom-[22%] right-[8%] size-20 -rotate-12" },
+  { Icon: Landmark, className: "bottom-[8%] left-[38%] size-12 rotate-6" },
+  { Icon: ChartColumn, className: "top-[20%] left-[46%] size-10 rotate-3" },
+  { Icon: ShieldCheck, className: "top-[58%] left-[52%] size-9 -rotate-12" },
+];
+
+const FEATURES = [
+  { Icon: Landmark, text: "EPF & ETF calculated automatically, with configurable rates" },
+  { Icon: FileText, text: "Professional PDF payslips for every employee" },
+  { Icon: BadgeCheck, text: "Draft → Review → Approved workflow with a full audit trail" },
+];
+
+function Logo({ className = "" }: { className?: string }) {
+  return (
+    <div className={`flex items-center gap-2.5 ${className}`}>
+      <span className="flex size-10 items-center justify-center rounded-xl bg-accent text-primary-hover">
+        <Wallet className="size-5" aria-hidden />
+      </span>
+      <span className="text-xl font-bold tracking-tight">PayLanka</span>
+    </div>
+  );
+}
+
+/** Two-column page for sign-in style screens: brand panel + form. */
+export function AuthLayout({ children }: { children: ReactNode }) {
+  return (
+    <main className="grid min-h-screen lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      {/* Brand panel (desktop) */}
+      <section
+        aria-hidden
+        className="relative hidden overflow-hidden bg-primary p-12 text-white lg:flex lg:flex-col lg:justify-between"
+      >
+        <div className="auth-pattern absolute inset-0 opacity-60" />
+        <div className="absolute -top-24 -left-24 size-80 rounded-full bg-primary-hover/70 blur-2xl" />
+        <div className="absolute -right-20 -bottom-28 size-96 rounded-full bg-accent/15 blur-3xl" />
+        {SYMBOLS.map(({ Icon, className }, i) => (
+          <Icon key={i} strokeWidth={1.25} className={`absolute text-white/10 ${className}`} />
+        ))}
+        <span className="absolute right-[30%] bottom-[38%] text-7xl font-extrabold text-white/[0.07] select-none">
+          Rs.
+        </span>
+
+        <Logo className="relative" />
+
+        <div className="relative max-w-md">
+          <p className="text-sm font-semibold tracking-widest text-accent uppercase">Smart payroll</p>
+          <h2 className="mt-3 text-4xl leading-tight font-bold">Payroll made simple for Sri Lankan businesses.</h2>
+          <ul className="mt-8 space-y-4">
+            {FEATURES.map(({ Icon, text }) => (
+              <li key={text} className="flex items-start gap-3 text-white/90">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white/10">
+                  <Icon className="size-4 text-accent" />
+                </span>
+                <span className="pt-1 text-sm leading-relaxed">{text}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <p className="relative text-xs text-white/60">
+          EPF/ETF rates are configurable — verify them against current regulations.
+        </p>
+      </section>
+
+      {/* Form side */}
+      <section className="relative flex flex-col">
+        {/* Compact brand band (mobile / tablet) */}
+        <div className="relative overflow-hidden bg-primary px-6 py-6 text-white lg:hidden">
+          <div className="auth-pattern absolute inset-0 opacity-60" aria-hidden />
+          <ReceiptText strokeWidth={1.25} className="absolute top-2 right-6 size-14 rotate-12 text-white/10" aria-hidden />
+          <Banknote strokeWidth={1.25} className="absolute -bottom-3 right-24 size-12 -rotate-12 text-white/10" aria-hidden />
+          <Logo className="relative" />
+          <p className="relative mt-2 text-sm text-white/80">Payroll made simple for Sri Lankan businesses.</p>
+        </div>
+
+        <div className="flex flex-1 items-center justify-center px-4 py-10 sm:px-8">
+          <div className="w-full max-w-sm">{children}</div>
+        </div>
+      </section>
+    </main>
+  );
+}

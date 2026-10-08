@@ -8,14 +8,43 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
+import { z } from "zod";
 import { PrismaClient } from "../src/generated/prisma/client";
+import { DEMO_ACCOUNTS, DEMO_PASSWORD, isDemoAccount } from "../src/lib/demo";
+import { passwordField } from "../src/lib/validation/user";
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) throw new Error("DATABASE_URL is not set");
 
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
 
-const DEMO_PASSWORD = "Demo@1234";
+
+/**
+ * The real first Admin comes from .env, so its password is never in the code.
+ * It uses the same password rules as the app and is checked BEFORE any data is
+ * wiped, so a typo can't leave you with an empty database and no way in.
+ */
+function readSeedAdmin() {
+  const result = z
+    .object({
+      email: z.email("SEED_ADMIN_EMAIL must be a valid email").trim().toLowerCase(),
+      password: passwordField,
+      name: z.string().trim().min(1).default("Administrator"),
+    })
+    .safeParse({
+      email: process.env.SEED_ADMIN_EMAIL,
+      password: process.env.SEED_ADMIN_PASSWORD,
+      name: process.env.SEED_ADMIN_NAME || undefined,
+    });
+  if (!result.success) {
+    const problems = result.error.issues.map((i) => `  - ${i.path.join(".")}: ${i.message}`).join("\n");
+    throw new Error(`Set SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD in .env (see .env.example).\n${problems}`);
+  }
+  if (isDemoAccount(result.data.email)) {
+    throw new Error("SEED_ADMIN_EMAIL must be different from the demo account emails.");
+  }
+  return result.data;
+}
 
 /** Rupees -> cents. Seed amounts are whole rupees, so this is exact. */
 const rs = (rupees: number) => rupees * 100;
@@ -65,6 +94,8 @@ const EMPLOYEES: SeedEmployee[] = [
 ];
 
 async function main() {
+  const seedAdmin = readSeedAdmin();
+
   console.log("Clearing existing data…");
   // Children before parents, so foreign keys don't block the deletes.
   await prisma.$transaction([
@@ -132,25 +163,39 @@ async function main() {
     employeeIds.push(employee.id);
   }
 
+  console.log(`Creating the first Admin (${seedAdmin.email})…`);
+  await prisma.user.create({
+    data: {
+      email: seedAdmin.email,
+      name: seedAdmin.name,
+      role: "ADMIN",
+      passwordHash: await bcrypt.hash(seedAdmin.password, 10),
+    },
+  });
+
+  // Demo accounts are NOT forced to change their password: on a shared demo the
+  // first visitor would otherwise lock everyone else out.
   console.log("Creating demo logins…");
   const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
+  // The demo Employee login belongs to employee #3 so it has real payslips to view.
+  const demoEmployeeIndex = 2;
   await prisma.user.createMany({
-    data: [
-      { email: "admin@paylanka.test", name: "Anura Admin", role: "ADMIN", passwordHash },
-      { email: "hr@paylanka.test", name: "Harini HR", role: "HR", passwordHash },
-      {
-        email: "employee@paylanka.test",
-        name: `${EMPLOYEES[2].firstName} ${EMPLOYEES[2].lastName}`,
-        role: "EMPLOYEE",
-        passwordHash,
-        employeeId: employeeIds[2],
-      },
-    ],
+    data: DEMO_ACCOUNTS.map((account) =>
+      account.role === "EMPLOYEE"
+        ? {
+            email: account.email,
+            name: `${EMPLOYEES[demoEmployeeIndex].firstName} ${EMPLOYEES[demoEmployeeIndex].lastName}`,
+            role: account.role,
+            passwordHash,
+            employeeId: employeeIds[demoEmployeeIndex],
+          }
+        : { email: account.email, name: account.name, role: account.role, passwordHash },
+    ),
   });
 
   console.log(
-    `Done: 1 company, ${departments.size} departments, ${EMPLOYEES.length} employees, 3 users.\n` +
-      `Demo password for all accounts: ${DEMO_PASSWORD}`,
+    `Done: 1 company, ${departments.size} departments, ${EMPLOYEES.length} employees, 1 admin + 3 demo users.\n` +
+      `Sign in as ${seedAdmin.email} (password from .env), or use a demo account (password ${DEMO_PASSWORD}).`,
   );
 }
 
