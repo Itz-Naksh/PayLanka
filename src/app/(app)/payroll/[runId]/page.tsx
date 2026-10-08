@@ -1,7 +1,8 @@
-import { ArrowLeft, CircleCheck, Lock, MessageSquareWarning, Send } from "lucide-react";
+import { ArrowLeft, CircleCheck, FileDown, Lock, MessageSquareWarning, Send } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RunStatusBadge } from "@/components/payroll/status-badge";
+import { buttonClasses } from "@/components/ui/button";
 import { Card, PageHeader, StatCard } from "@/components/ui/card";
 import { Money } from "@/components/ui/money";
 import { hasPermission } from "@/lib/auth/permissions";
@@ -72,15 +73,26 @@ export default async function PayrollRunPage({ params }: PageProps<"/payroll/[ru
         title={`${period} payroll`}
         description={`${totals.employees} employees`}
         actions={
-          <RunActions
-            runId={run.id}
-            period={period}
-            status={run.status}
-            canEdit={canEdit}
-            canSubmit={canSubmit}
-            canApprove={canApprove}
-            approveBlockedReason={approveBlockedReason}
-          />
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-start">
+            <a
+              href={`/api/payroll/${run.id}/payslips`}
+              target="_blank"
+              rel="noopener"
+              className={buttonClasses("secondary")}
+            >
+              <FileDown className="size-4" aria-hidden />
+              {run.status === "APPROVED" ? "All payslips (PDF)" : "Preview payslips"}
+            </a>
+            <RunActions
+              runId={run.id}
+              period={period}
+              status={run.status}
+              canEdit={canEdit}
+              canSubmit={canSubmit}
+              canApprove={canApprove}
+              approveBlockedReason={approveBlockedReason}
+            />
+          </div>
         }
       />
       <div className="-mt-3 mb-6">

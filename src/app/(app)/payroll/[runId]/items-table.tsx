@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, CircleAlert, Pencil } from "lucide-react";
+import { ChevronDown, CircleAlert, FileDown, Pencil } from "lucide-react";
 import { Fragment, useState } from "react";
 import { PayBreakdown } from "@/components/payroll/pay-breakdown";
 import { Card } from "@/components/ui/card";
@@ -38,7 +38,7 @@ export function ItemsTable({
               <th scope="col" className="hidden px-3 py-3 text-right xl:table-cell">EPF 8%</th>
               <th scope="col" className="hidden px-3 py-3 text-right lg:table-cell">Deductions</th>
               <th scope="col" className="px-3 py-3 text-right">Net pay</th>
-              <th scope="col" className="w-12 px-2 py-3"><span className="sr-only">{editable ? "Edit" : "Details"}</span></th>
+              <th scope="col" className="w-20 px-2 py-3"><span className="sr-only">Actions</span></th>
             </tr>
           </thead>
           <tbody>
@@ -73,7 +73,17 @@ export function ItemsTable({
                         formatLKR(item.netCents)
                       )}
                     </td>
-                    <td className="px-2 py-2 text-right">
+                    <td className="px-2 py-2 text-right whitespace-nowrap">
+                      <a
+                        href={`/api/payslips/${item.id}`}
+                        target="_blank"
+                        rel="noopener"
+                        aria-label={`Payslip PDF for ${item.employeeName}`}
+                        title="Payslip PDF"
+                        className="inline-flex rounded-lg p-2 text-muted hover:bg-primary-soft hover:text-primary"
+                      >
+                        <FileDown className="size-4" aria-hidden />
+                      </a>
                       <button
                         type="button"
                         onClick={() => setOpenId(open ? null : item.id)}
