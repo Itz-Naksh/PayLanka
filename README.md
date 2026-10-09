@@ -6,7 +6,7 @@ professional PDF payslips, statutory and bank reports, and a full audit trail.
 
 ![PayLanka dashboard](docs/screenshots/dashboard.png)
 
-> **Live demo:** _add your Vercel URL here_ — click **Try as Admin / HR / Employee** on the sign-in page.
+> **Live demo: [paylanka.vercel.app](https://paylanka.vercel.app)** — click **Try as Admin / HR / Employee** on the sign-in page.
 > All data in the demo is fictional and is reset every night.
 
 ---
