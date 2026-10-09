@@ -90,10 +90,12 @@ type AppShellProps = {
   demo?: boolean;
   /** This month's payroll status card (only for roles that can see payroll). */
   payroll?: PayrollCard | null;
+  /** App version from package.json, shown in the sidebar footer. */
+  version?: string;
   children: ReactNode;
 };
 
-export function AppShell({ user, companyName, nav, demo = false, payroll = null, children }: AppShellProps) {
+export function AppShell({ user, companyName, nav, demo = false, payroll = null, version, children }: AppShellProps) {
   const pathname = usePathname();
   // Remember which page the mobile drawer was opened on; navigating anywhere
   // else closes it automatically, with no effect needed.
@@ -179,6 +181,7 @@ export function AppShell({ user, companyName, nav, demo = false, payroll = null,
             Sign out
           </button>
         </form>
+        {version ? <p className="mt-3 px-2 text-[11px] text-white/45">PayLanka v{version}</p> : null}
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/app-shell";
+import { version } from "../../../package.json";
 import { hasPermission, navItemsFor } from "@/lib/auth/permissions";
 import { getCurrentUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/db";
@@ -32,6 +33,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       nav={navItemsFor(user.role)}
       demo={isLockedDemoUser(user)}
       payroll={payroll}
+      version={version}
     >
       {children}
     </AppShell>
